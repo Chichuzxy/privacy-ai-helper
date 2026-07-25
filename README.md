@@ -52,12 +52,13 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 | 函数 | 功能 | 隐私保护方式 |
 |------|------|-------------|
-| `grant_access()` | 用户授权应用访问隐私数据 | 链上记录授权状态，不存数据 |
-| `store_data(category)` | 将数据类别哈希上链 | 只存 `field` 哈希，不可逆推类别名 |
-| `verify_access(owner)` | 验证用户是否已授权 | ZK 证明，不暴露具体类别 |
-| `revoke_access()` | 撤销授权 | 用户随时可撤回 |
+| `grant_access(data_hash)` | 用户授权应用访问隐私数据 | 链上存 field 哈希，不存类别名 |
+| `check_access(owner)` | 查询授权哈希 | 返回 field，外部无法反推 |
+| `store_data(category)` | 将数据类别哈希上链 | 权限校验，防止他人覆盖 |
+| `revoke_access()` | 撤销授权 | 哈希清零 + 时间戳清零 |
+| `is_authorized(owner, max_age)` | 验证授权 + 过期检查 | 含 block.height 时效判断 |
 
-合约已通过 `leo build` 编译，程序大小 1.23 KB。
+合约已通过语法检查，程序大小 2.33 KB。
 
 ---
 
@@ -93,11 +94,13 @@ AI-Xiaozhushou/
 │       └── index.css      # 深色极简 UI
 ├── backend/               # Express 后端
 │   └── index.js           # Ollama 对接 + ZK 生成
-├── privacy_ai_helper/     # Leo 智能合约 (WSL 内)
-│   └── src/main.leo       # 隐私授权合约
+├── privacy_ai_helper/     # Leo 智能合约
+│   └── src/main.leo       # 隐私授权合约（5 函数，已通过语法检查）
 ├── 一键启动.bat            # Windows 全栈一键启动
 ├── README.md              # 项目方案书
-└── DEMO_SCRIPT.md         # Demo 演示脚本
+├── DEMO_SCRIPT.md         # Demo 演示脚本
+├── PITCH_DECK.md          # 路演 PPT 逐字稿
+└── PROJECT_OVERVIEW.md    # 项目说明文档
 ```
 
 ---
@@ -106,11 +109,12 @@ AI-Xiaozhushou/
 
 | 组件 | 用途 |
 |------|------|
-| Windows 10/11 | 运行前端 + Ollama |
-| WSL2 Ubuntu | Leo 合约编译 |
+| Windows 10/11 | 运行全栈（前端 + 后端 + Ollama + 合约文件） |
 | Ollama + Qwen2.5 1.5B | 本地 AI 推理 |
 | Leo Wallet 浏览器插件 | Aleo 钱包连接 |
 | Node.js 18+ | 前后端运行 |
+
+> Leo 合约文件位于本地 `privacy_ai_helper/src/main.leo`，无需 WSL。如需编译合约，使用 `leo build`（需安装 Leo 工具链）。
 
 ---
 
