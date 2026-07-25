@@ -1,6 +1,9 @@
 import { useState } from "react";
 import "./index.css";
 
+const CONTRACT_TX = "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq";
+const EXPLORER_URL = "https://explorer.aleo.org/transaction/" + CONTRACT_TX;
+
 function App() {
   const [address, setAddress] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -78,6 +81,12 @@ function App() {
       {isConnected ? (
         <div className="status-bar success">
           {"\u2705"} 隐私证明已验证 &middot; {address.slice(0, 6)}...{address.slice(-4)}
+          <div className="contract-verify">
+            {"\U0001F4E6"} 合约已部署到 Aleo Testnet &middot;{" "}
+            <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer">
+              链上验证 &rarr;
+            </a>
+          </div>
         </div>
       ) : (
         <div className="status-bar hint">
@@ -104,6 +113,9 @@ function App() {
               {msg.zkProof && (
                 <div className="zk-tag">
                   ZK Proof: <code>{msg.zkProof.slice(0, 22)}...</code>
+                  <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer" style={{marginLeft:8,color:"#38bdf8",fontSize:11}}>
+                    合约验证 &rarr;
+                  </a>
                 </div>
               )}
             </div>
