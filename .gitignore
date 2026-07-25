@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+dist/
+.cache/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+nohup.out
+
+# Ollama
+ollama_cache/
+
+# Python
+__pycache__/
+
+# Large binaries
+*.exe
+*.dll
+*.zip
+*.tar.gz
