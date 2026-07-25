@@ -18,6 +18,16 @@ const DATA_CATEGORIES = {
   genomic: "基因数据 (DNA/遗传信息)",
 };
 
+// 合约部署信息 (Aleo Testnet)
+const CONTRACT = {
+  tx_id: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
+  address: "aleo1kdldc7kk6594c0zd6jy...",
+  network: "testnet",
+  fee: "6.07 credits",
+  size: "1.95 KB",
+  functions: ["grant_access", "check_access", "revoke_access", "store_data", "is_authorized"],
+};
+
 // ZK 证明生成（Demo 用 SHA256，生产环境对接 Leo 链上验证）
 function generateZKProof(prompt, category, address) {
   const payload = [prompt, category, address, Date.now().toString()].join("|");
@@ -77,7 +87,13 @@ app.post("/api/ask", async (req, res) => {
     zk_proof,
     category: dataCategory,
     verified: true,
+    contract: CONTRACT.tx_id,
   });
+});
+
+// 合约信息端点
+app.get("/api/contract", (req, res) => {
+  res.json(CONTRACT);
 });
 
 const PORT = process.env.PORT || 3001;

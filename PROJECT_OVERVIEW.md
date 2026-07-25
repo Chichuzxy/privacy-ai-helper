@@ -56,13 +56,26 @@
 
 | 模块 | 完成项 | 状态 |
 |------|--------|------|
-| 前端 | 钱包连接 + 聊天 UI + 数据类别选择 + 中英切换 | Done |
-| 后端 | Ollama 对接 + ZK Proof 生成 + 隐私 prompt 构建 | Done |
-| AI | Qwen2.5 1.5B 中文推理正常 | Done |
-| 合约 | 5 函数，已通过 `leo build` 编译，1.95 KB | Done |
-| 文档 | README + DEMO_SCRIPT + PITCH_DECK + PROJECT_OVERVIEW | Done |
-| 启动 | 一键启动.bat（Ollama + 后端 + 前端 + 浏览器） | Done |
-| GitHub | https://github.com/Chichuzxy/privacy-ai-helper | Done |
+| 前端 | 钱包连接 + 聊天 UI + 数据类别选择 + 中英切换 | ✅ Done |
+| 后端 | Ollama 对接 + ZK Proof 生成 + 隐私 prompt 构建 | ✅ Done |
+| AI | Qwen2.5 1.5B 中文推理正常 | ✅ Done |
+| 合约 | 5 函数，已编译，**已部署到 Aleo Testnet** | ✅ Done |
+| 文档 | README + DEMO_SCRIPT + PITCH_DECK + PROJECT_OVERVIEW | ✅ Done |
+| 启动 | 一键启动.bat（Ollama + 后端 + 前端 + 浏览器） | ✅ Done |
+| GitHub | https://github.com/Chichuzxy/privacy-ai-helper | ✅ Done |
+
+## 六、合约部署记录
+
+| 项目 | 值 |
+|------|-----|
+| 交易 ID | `at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq` |
+| 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
+| 部署费用 | 6.07 credits |
+| 程序大小 | 1.95 KB / 2000 KB |
+| 变量数 | 89,079 / 2,097,152 |
+| 约束数 | 63,949 / 2,097,152 |
+| 网络 | Aleo Testnet |
+| 确认 | 1 区块 |
 
 ---
 
