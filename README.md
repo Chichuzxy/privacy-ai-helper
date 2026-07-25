@@ -26,6 +26,19 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | **用户自主权** | 钱包授权 + 数据类别选择，用户控制一切 |
 | **实用性** | 医疗/健康是真实刚需场景 |
 
+## 合约部署
+
+**Testnet 已部署！**
+
+| 项目 | 值 |
+|------|-----|
+| 交易 ID | `at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq` |
+| 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
+| 部署费用 | 6.07 credits |
+| 程序大小 | 1.95 KB |
+| 网络 | Aleo Testnet |
+| 函数数 | 5 个 |
+
 ---
 
 ## 技术架构
@@ -58,7 +71,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | `revoke_access()` | 撤销授权 | 哈希清零 + 时间戳清零 |
 | `is_authorized(owner, max_age)` | 验证授权 + 过期检查 | 含 block.height 时效判断 |
 
-合约已通过语法检查，程序大小 2.33 KB。
+合约已通过 `leo build` 编译，程序大小 1.95 KB。
 
 ---
 

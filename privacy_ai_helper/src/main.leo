@@ -5,7 +5,7 @@ program privacy_ai_helper.aleo {
     // 漏洞修复1: bool → field，只存授权数据类别的哈希，杜绝元数据泄露
     mapping authorizations: address => field;
     // 漏洞修复3: 添加时间维度，记录授权时间戳
-    mapping auth_timestamps: address => u64;
+    mapping auth_timestamps: address => u32;
 
     @noupgrade constructor() {}
 
@@ -13,7 +13,7 @@ program privacy_ai_helper.aleo {
     fn grant_access(data_hash: field) -> Final {
         let caller: address = self.caller;
         return final {
-            let timestamp: u64 = block.height;
+            let timestamp: u32 = block.height;
             Mapping::set(authorizations, caller, data_hash);
             Mapping::set(auth_timestamps, caller, timestamp);
         };
@@ -31,7 +31,7 @@ program privacy_ai_helper.aleo {
         let caller: address = self.caller;
         return final {
             Mapping::set(authorizations, caller, 0field);
-            Mapping::set(auth_timestamps, caller, 0u64);
+            Mapping::set(auth_timestamps, caller, 0u32);
         };
     }
 
@@ -47,10 +47,10 @@ program privacy_ai_helper.aleo {
     }
 
     // 验证授权是否有效（含时间过期检查）
-    fn is_authorized(owner: address, max_age: u64) -> (bool, Final) {
+    fn is_authorized(owner: address, max_age: u32) -> (bool, Final) {
         return (false, final {
             let hash: field = Mapping::get_or_use(authorizations, owner, 0field);
-            let ts: u64 = Mapping::get_or_use(auth_timestamps, owner, 0u64);
+            let ts: u32 = Mapping::get_or_use(auth_timestamps, owner, 0u32);
             let valid: bool = hash != 0field && (block.height - ts) <= max_age;
         });
     }

@@ -59,7 +59,7 @@
 | 前端 | 钱包连接 + 聊天 UI + 数据类别选择 + 中英切换 | Done |
 | 后端 | Ollama 对接 + ZK Proof 生成 + 隐私 prompt 构建 | Done |
 | AI | Qwen2.5 1.5B 中文推理正常 | Done |
-| 合约 | 5 函数，语法通过，无 bool 隐私泄露 | Done |
+| 合约 | 5 函数，已通过 `leo build` 编译，1.95 KB | Done |
 | 文档 | README + DEMO_SCRIPT + PITCH_DECK + PROJECT_OVERVIEW | Done |
 | 启动 | 一键启动.bat（Ollama + 后端 + 前端 + 浏览器） | Done |
 | GitHub | https://github.com/Chichuzxy/privacy-ai-helper | Done |
