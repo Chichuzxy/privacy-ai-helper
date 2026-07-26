@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./index.css";
 
-const CONTRACT_TX = "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq";
-const EXPLORER_URL = "https://explorer.aleo.org/transaction/" + CONTRACT_TX;
+const CONTRACT_TX = "at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053";
+const EXPLORER_URL = "https://explorer.provable.com/v1/testnet/transaction/" + CONTRACT_TX;
 
 const CATEGORY_MAP = {
   1: "健康数据",
   2: "基因数据",
   3: "财务数据",
   4: "其他数据",
+};
+
+const PLACEHOLDER = {
+  zh: "请输入您的问题...",
+  en: "Type your question...",
 };
 
 function App() {
@@ -19,6 +24,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("zh");
   const [categoryId, setCategoryId] = useState(1);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat]);
 
   const connectWallet = async () => {
     let retries = 0;
@@ -42,27 +50,36 @@ function App() {
   };
 
   const handleAsk = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || loading) return;
+    const userMsg = { role: "user", text: prompt };
+    const loadingMsg = { role: "loading", text: "AI 正在思考中..." };
+    setChat((prev) => [...prev, userMsg, loadingMsg]);
+    setPrompt("");
     setLoading(true);
+
     try {
       const res = await fetch("http://localhost:3001/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, language, category_id: categoryId, address }),
+        body: JSON.stringify({ prompt: userMsg.text, language, category_id: categoryId, address }),
       });
       const data = await res.json();
-      setChat((prev) => [
-        ...prev,
-        { role: "user", text: prompt },
-        { role: "ai", text: data.answer, privacyTag: data.privacy_tag },
-      ]);
-      setPrompt("");
+      setChat((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: "ai",
+          text: data.answer,
+          privacyTag: data.privacy_tag,
+          verified: data.verified,
+        };
+        return updated;
+      });
     } catch (err) {
-      setChat((prev) => [
-        ...prev,
-        { role: "user", text: prompt },
-        { role: "error", text: "Backend error: " + err.message },
-      ]);
+      setChat((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "error", text: "后端连接失败: " + err.message };
+        return updated;
+      });
     }
     setLoading(false);
   };
@@ -107,12 +124,18 @@ function App() {
           </div>
         )}
         {chat.map((msg, i) => (
-          <div key={i} className={"msg-row " + (msg.role === "user" ? "user" : msg.role === "error" ? "error" : "ai")}>
+          <div key={i} className={"msg-row " + (msg.role === "user" ? "user" : msg.role === "error" ? "error" : msg.role === "loading" ? "loading" : "ai")}>
             <div className="msg-bubble">
               <div className="msg-label">
-                {msg.role === "user" ? "你" : msg.role === "error" ? "错误" : "AI"}
+                {msg.role === "user" ? "你" : msg.role === "error" ? "错误" : msg.role === "loading" ? "AI" : "AI"}
               </div>
-              <div className="msg-body">{msg.text}</div>
+              <div className="msg-body">
+                {msg.role === "loading" ? (
+                  <em>{msg.text}</em>
+                ) : (
+                  msg.text
+                )}
+              </div>
               {msg.privacyTag && (
                 <div className="zk-tag">
                   Privacy Tag: <code>{msg.privacyTag.slice(0, 22)}...</code>
@@ -124,6 +147,7 @@ function App() {
             </div>
           </div>
         ))}
+        <div ref={chatEndRef} />
       </main>
 
       <footer className="input-bar">
@@ -140,7 +164,7 @@ function App() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-          placeholder={isConnected ? "请输入您的问题..." : "请先连接钱包"}
+          placeholder={isConnected ? PLACEHOLDER[language] : "请先连接钱包"}
           disabled={loading || !isConnected}
         />
         <button onClick={handleAsk} disabled={loading || !isConnected}>

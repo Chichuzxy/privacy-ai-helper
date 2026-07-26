@@ -113,6 +113,19 @@ body {
   outline: none;
 }
 
+/* ===== Loading ===== */
+.msg-row.loading .msg-bubble {
+  background: #1a1a1a;
+  border: 1px dashed #444;
+}
+.msg-row.loading .msg-body {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 /* ===== Scrollbar ===== */
 .chat-area::-webkit-scrollbar { width: 6px; }
 .chat-area::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
