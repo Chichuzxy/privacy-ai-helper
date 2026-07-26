@@ -106,7 +106,7 @@ app.post("/api/ask", async (req, res) => {
     category_id: catId,
     verified: true,
     source,
-    contract_tx: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
+    contract_tx: "at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053",
   });
 });
 
@@ -122,7 +122,7 @@ app.get("/api/demo", (req, res) => {
     category_id: catId,
     verified: true,
     source: "demo",
-    contract_tx: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
+    contract_tx: "at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053",
   });
 });
 

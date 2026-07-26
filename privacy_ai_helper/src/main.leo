@@ -5,7 +5,7 @@ const CATEGORY_GENE: u8 = 2u8;
 const CATEGORY_FINANCE: u8 = 3u8;
 const CATEGORY_OTHER: u8 = 4u8;
 
-program privacy_ai_helper.aleo {
+program privacy_ai_helper_v2.aleo {
 
     mapping authorizations: field => field;
 

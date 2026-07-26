@@ -23,7 +23,7 @@
 | AI 模型 | Ollama + Qwen2.5 1.5B | 本地推理，数据不出用户电脑 |
 | 区块链 | Aleo Testnet + Leo 4.x | 隐私授权合约，链上哈希存证 |
 | 钱包 | Leo Wallet (原生 API) | `window.aleo.connect()`，3 次重试 + 自动降级 |
-| 合约 | Leo (privacy_ai_helper.aleo) | 5 个函数：grant/check/revoke/is_authorized/hash_category |
+| 合约 | Leo (privacy_ai_helper_v2.aleo) | 5 个函数：grant/check/revoke/is_authorized/hash_category |
 
 ---
 
@@ -68,9 +68,9 @@
 
 | 项目 | 值 |
 |------|-----|
-| 交易 ID | `at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq` |
+| 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
 | 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
-| 部署费用 | 6.07 credits |
+| 部署费用 | 5.19 credits |
 | 程序大小 | 1.95 KB / 2000 KB |
 | 变量数 | 89,079 / 2,097,152 |
 | 约束数 | 63,949 / 2,097,152 |
