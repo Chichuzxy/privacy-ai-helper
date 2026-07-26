@@ -35,7 +35,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
 | 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
 | 部署费用 | 5.19 credits |
-| 程序大小 | 1.95 KB |
+| 程序大小 | 1.99 KB |
 | 网络 | Aleo Testnet |
 | 函数数 | 5 个 |
 

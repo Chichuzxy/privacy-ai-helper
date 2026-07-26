@@ -1,79 +1,80 @@
 # Submission Checklist — Privacy AI Helper
 
-> Aleo Hackathon 2026 · AI × Privacy Track
-> : 2026.08.14 23:59
+> Aleo Hackathon 2026 · AI x Privacy Track
+> 截止日期: 2026.08.14 23:59
 
 ---
 
-## /
+## 必须提交
 
-| # |  |  |  |
-|---|------|------|-----|
-| 1 | GitHub Repo | `https://github.com/Chichuzxy/privacy-ai-helper` | [ ] |
-| 2 | README.md |  | [ ] |
-| 3 |  | | [ ] |
-
----
-
-## / Demo (
-
-| # |  |  |  |
-|---|------|------|-----|
-| 4 | Demo | 3 | [ ] |
-| 5 | PPT / Pitch Deck | `PITCH_DECK.md`  PowerPoint | [ ] |
-| 6 |  |  | [ ] |
+| # | 项目 | 路径/内容 | 状态 |
+|---|------|----------|------|
+| 1 | GitHub Repo | `https://github.com/Chichuzxy/privacy-ai-helper` | [x] |
+| 2 | README.md | 项目方案书（问题/方案/架构/创新） | [x] |
+| 3 | Demo 视频 | 3 分钟内，按 DEMO_SCRIPT.md 录制 | [ ] |
 
 ---
 
-## /
+## 路演材料
 
-| # |  |  |  |
-|---|------|------|-----|
-| 7 | `privacy_ai_helper/src/main.leo` | 4  + Poseidon2  | [ ] |
-| 8 |  | Aleo Testnet | [ ] |
-| 9 |  | `at1tlrj2xsah...`  | [ ] |
-
----
-
-## /
-
-| # |  |  |  |
-|---|------|------|-----|
-| 10 | `DEPLOYMENT.md` |  | [ ] |
-| 11 | `.env` | `PRIVATE_KEY`  | [ ] |
-| 12 | `privacy_ai_helper/build/` | Leo  | [ ] |
+| # | 项目 | 路径/内容 | 状态 |
+|---|------|----------|------|
+| 4 | Demo 脚本 | `DEMO_SCRIPT.md`（3 轮对话含授权边界演示） | [x] |
+| 5 | PPT / Pitch Deck | `PITCH_DECK.md` → 转 PowerPoint 8 页 | [ ] |
+| 6 | 项目说明 | `PROJECT_OVERVIEW.md`（技术栈/创新点/完成度） | [x] |
 
 ---
 
-##  (Plan B)
+## 合约 & 部署
 
-| # |  |  |
-|---|------|-----|
-| 13 |  |  |
-| 14 | Ollama  | `?demo=true`  |
-| 15 | Aleo Testnet  |  |
-
----
-
-## 
-
-| # |  |  |  |
-|---|------|------|-----|
-| 16 | README.md |  | [ ] |
-| 17 | PITCH_DECK.md | Slide 4  ZK  | [ ] |
-| 18 | DEMO_SCRIPT.md | Q&A  | [ ] |
-| 19 | PROJECT_OVERVIEW.md |  | [ ] |
+| # | 项目 | 路径/内容 | 状态 |
+|---|------|----------|------|
+| 7 | 合约源码 | `privacy_ai_helper/src/main.leo`（5 函数 + Poseidon2） | [x] |
+| 8 | 合约部署 | Aleo Testnet，tx `at1tlrj2xsah...`，5.19 credits | [x] |
+| 9 | 浏览器验证 | Provable Explorer 链接可查 | [x] |
 
 ---
 
-## 
+## 部署留存
 
-- [ ] 
-- [ ] `main.leo`  Poseidon2::hash_to_field 
-- [ ]  `npm run build`  0 error
-- [ ]  `node --check backend/index.js`  0 error
-- [ ]  1920x1080, 100%
-- [ ] 
-- [ ] 
-- [ ]  .env  .gitignore
-- [ ] `git push`
+| # | 项目 | 路径/内容 | 状态 |
+|---|------|----------|------|
+| 10 | 部署记录 | `README.md` 含部署记录章节 | [x] |
+| 11 | 环境变量 | `privacy_ai_helper/.env`（私钥已在 .gitignore 排除） | [x] |
+| 12 | 编译产物 | `privacy_ai_helper/build/`（Leo 编译输出） | [x] |
+
+---
+
+## 降级方案 (Plan B)
+
+| # | 场景 | 应对 |
+|---|------|------|
+| 13 | 钱包未连接 | 3 次重试后自动降级演示模式 |
+| 14 | Ollama 不可用 | `?demo=true` 参数返回预设中文回答 |
+| 15 | Aleo Testnet 不可达 | 展示本地方案：合约源码 + 编译产物 + 部署日志 |
+
+---
+
+## 文档一致性检查
+
+| # | 检查项 | 路径/内容 | 状态 |
+|---|--------|----------|------|
+| 16 | README.md | 函数名/数量/合约大小与源码一致 | [x] |
+| 17 | PITCH_DECK.md | Slide 4 三层防线 + Slide 7 真实场景 | [x] |
+| 18 | DEMO_SCRIPT.md | 3 轮对话 + Q&A 弹药库 | [x] |
+| 19 | PROJECT_OVERVIEW.md | 章节编号正确，数据与部署记录一致 | [x] |
+
+---
+
+## 最终自检
+
+- [x] 合约 `main.leo` 含 `Poseidon2::hash_to_field` 显式调用
+- [x] 前端 `npm run build` 0 error
+- [x] 后端 `node --check backend/index.js` 0 error
+- [x] 后端授权守卫 16/16 测试通过
+- [x] 文档 5 份 md 全部无乱码、无旧 tx 残留
+- [x] 录屏设置：1920x1080, 100% 缩放
+- [ ] 录制 3 分钟 Demo 视频
+- [ ] PITCH_DECK.md 转 PowerPoint
+- [x] `.env` 已在 `.gitignore` 排除
+- [x] `git push` 已推送
