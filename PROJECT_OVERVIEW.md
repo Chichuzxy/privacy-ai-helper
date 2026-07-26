@@ -42,13 +42,13 @@
 
 ## 四、合约函数（5 个）
 
-| 函数 | 功能 | 隐私设计 |
-|------|------|---------|
-| `grant_access(data_hash)` | 授权某数据类别 | 链上存哈希，不存类别名 |
-| `check_access(owner)` | 查询授权哈希 | 返回 field，外部无法反推 |
-| `revoke_access()` | 撤销授权 | 哈希清零 + 时间戳清零 |
-| `store_data(category)` | 记录数据类别 | 权限校验，防止他人覆盖 |
-| `is_authorized(owner, max_age)` | 验证授权 + 过期检查 | 含 block.height 时效判断 |
+| 函数 | 签名 | 功能 | 隐私设计 |
+|------|------|------|---------|
+| `grant_access` | `(category_id: u8)` | 授权某数据类别 | 合约内 Poseidon2 生成哈希键，链上只存 field |
+| `check_access` | `(category_id: u8) -> field` | 查询授权状态 | 返回 0field 或 block.height，外部无法反推类别 |
+| `revoke_access` | `(category_id: u8)` | 撤销单个类别 | 指定类别清零，不影响其他授权 |
+| `is_authorized` | `(owner, category_id, max_age) -> bool` | ZK 验证 + 过期 | 含 block.height 时效判断 |
+| `hash_category` | `(category_id: u8) -> field` | Poseidon2 哈希 | 纯函数，链上可复算 |
 
 ---
 

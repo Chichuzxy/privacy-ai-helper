@@ -10,29 +10,27 @@ app.use(express.json());
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:1.5b";
 
-// 预设数据类别 (与 Leo 合约 CATEGORY_* 常量一一对应)
 const CATEGORIES = {
-  1: "血压、心率、病史",
-  2: "DNA、遗传信息",
-  3: "收入、支出、投资",
-  4: "",
+  1: "健康数据 (血压/心率/病史)",
+  2: "基因数据 (DNA/遗传信息)",
+  3: "财务数据 (收入/支出/投资)",
+  4: "其他数据",
 };
 
-// Privacy Tag -- SHA256
-// SHA256 => on-chain Poseidon2 ZK
+// Privacy Tag: SHA256 commitment (not native Groth16 ZKP)
+// Binds authorization context to AI output for offline verification
 function generatePrivacyTag(categoryId, answer, timestamp) {
   const payload = [categoryId.toString(), answer, timestamp.toString()].join("|");
   return "0x" + crypto.createHash("sha256").update(payload).digest("hex").slice(0, 16);
 }
 
-// prompt
 function buildPrompt(userPrompt, categoryId, language) {
   const categoryDesc = CATEGORIES[categoryId] || "";
   const prefix = language === "zh"
-    ? "" + categoryDesc + ""
+    ? "你是一个隐私保护的AI助手。用户已授权你访问以下数据类别：" + categoryDesc + "。请仅基于此类别的数据范围回答问题。"
     : "You are a privacy-preserving AI assistant. User authorized data category: " + categoryDesc + ". Answer only within this scope.";
-  let full = prefix + "\\n\\n" + userPrompt;
-  if (language === "zh") full = "" + full;
+  let full = prefix + "\\n\\n用户：" + userPrompt;
+  if (language === "zh") full = "请用中文回答。" + full;
   return full;
 }
 
@@ -55,19 +53,19 @@ async function askOllama(prompt) {
   }
 }
 
-// Plan B: Demo
+// Plan B: Offline demo mode (no Ollama required)
 const DEMO_ANSWERS = {
   zh: {
-    1: "135/85",
-    2: "",
-    3: "",
-    4: "",
+    1: "根据您提供的数据，血压 135/85 属于正常高值范围。收缩压 135 略高于理想值 120，舒张压 85 在正常范围内。建议保持健康饮食、规律运动，定期监测血压变化。",
+    2: "基因数据分析需要专业的生物信息学工具。请在授权的基因数据类别下，提供具体的基因位点或检测报告内容，我可以帮您解读相关健康风险。",
+    3: "财务数据分析需要在授权的财务数据类别下进行。请提供具体的收支记录或投资组合信息，我可以帮您分析财务状况和优化建议。",
+    4: "请在左侧下拉菜单中选择您要授权的数据类别，然后提出具体问题，AI 将在您授权的数据范围内为您回答。",
   },
   en: {
-    1: "Your blood pressure reading of 135/85 falls within the elevated range. The top number (systolic) is borderline high, while the bottom (diastolic) is normal. Consider lifestyle changes and consult your doctor.",
-    2: "",
-    3: "",
-    4: "",
+    1: "Your blood pressure reading of 135/85 falls within the elevated range. Consider lifestyle changes and consult your doctor for a personalized plan.",
+    2: "Genetic data analysis requires specialized tools. Please provide specific genetic markers or test results within your authorized gene data scope.",
+    3: "Financial analysis requires authorized data access. Please share your income/expense records or portfolio details for personalized advice.",
+    4: "Please select a data category from the dropdown menu and ask a specific question. The AI will respond within your authorized data scope.",
   },
 };
 
@@ -84,7 +82,6 @@ app.post("/api/ask", async (req, res) => {
   if (!prompt) return res.status(400).json({ error: "prompt required" });
 
   const catId = category_id || 1;
-  const userAddress = address || "aleo1demo";
   const isDemo = req.query.demo === "true";
 
   let answer;
@@ -113,7 +110,6 @@ app.post("/api/ask", async (req, res) => {
   });
 });
 
-// Plan B
 app.get("/api/demo", (req, res) => {
   const lang = req.query.lang || "zh";
   const catId = parseInt(req.query.cat) || 1;

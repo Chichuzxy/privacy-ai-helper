@@ -22,8 +22,8 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | 评判维度 | 我们的设计 |
 |----------|-----------|
 | **AI + Privacy** | AI 分析 + Aleo ZK 验证，核心赛道 |
-| **链上可验证** | Leo 合约 `store_data` + `verify_access` 在 Testnet 可执行 |
-| **用户自主权** | 钱包授权 + 数据类别选择，用户控制一切 |
+| **链上可验证** | Leo 合约 `is_authorized` + `check_access` 在 Testnet 可执行 |
+| **用户自主权** | 钱包授权 + 4 类数据独立控制，用户控制一切 |
 | **实用性** | 医疗/健康是真实刚需场景 |
 
 ## 合约部署
@@ -54,8 +54,9 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 +------------------------------------+
 |      Aleo Testnet (Leo 合约)        |
 |  - grant_access / revoke_access     |
-|  - store_data (数据类别哈希)        |
-|  - verify_access (ZK 验证)          |
+|  - check_access (查询授权状态)      |
+|  - is_authorized (ZK 验证 + 过期)   |
+|  - hash_category (Poseidon2 哈希)   |
 +------------------------------------+
 ```
 
@@ -63,15 +64,15 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 ## Leo 合约核心函数
 
-| 函数 | 功能 | 隐私保护方式 |
-|------|------|-------------|
-| `grant_access(data_hash)` | 用户授权某数据类别 | 链上存 Poseidon2(field) 哈希，不可反推类别名 |
-| `check_access(owner)` | 查询用户授权哈希 | 返回 field，外部观察者只能看到数字 |
-| `store_data(data_category)` | 将类别哈希上链 | 权限校验 `assert existing == 0 || existing == data_category` |
-| `revoke_access()` | 撤销授权 | 哈希清零 + 时间戳清零，不可恢复 |
-| `is_authorized(owner, max_age)` | 验证授权 + 过期检查 | 含 `block.height` 时效判断，授权不是永久的 |
+| 函数 | 签名 | 功能 | 隐私保护方式 |
+|------|------|------|-------------|
+| `grant_access` | `(category_id: u8) -> field` | 用户授权某数据类别 | 输入数字ID，合约内 Poseidon2 生成哈希键，链上只存 field |
+| `check_access` | `(category_id: u8) -> field` | 查询某类别授权状态 | 返回 0field=未授权 或 block.height=已授权，外部无法反推类别 |
+| `revoke_access` | `(category_id: u8) -> field` | 撤销单个类别授权 | 指定类别键值清零，不影响其他已授权类别 |
+| `is_authorized` | `(owner, category_id, max_age) -> bool` | 验证授权 + 过期检查 | 含 `block.height` 时效判断，授权不是永久的 |
+| `hash_category` | `(category_id: u8) -> field` | 类别ID转Poseidon2哈希 | 纯函数，链上可复算，输出为 ZK 友好 field 值 |
 
-合约已通过 `leo build` 编译并部署到 Aleo Testnet，程序大小 1.95 KB。
+合约已通过 `leo build` 编译并部署到 Aleo Testnet。
 
 ## 数据边界设计
 
@@ -79,14 +80,14 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 使用 **Poseidon2 哈希函数**（Aleo 原生 ZK 友好哈希）将类别名转换为链上 field 值。
 
-**规则：** `category_hash = Poseidon2("类别名_v1")`
+**规则：** 合约调用 `Poseidon2::hash_to_field(category_id)`，传入 1-4 的数字 ID。Leo 合约中预定义了 `CATEGORY_HEALTH = 1u8` 等 4 个常量，`match` 校验只接受这 4 个值。
 
-| 类别 | 输入 | 说明 |
-|------|------|------|
-| 健康数据 | `Poseidon2("health_data_v1")` | 血压、心率、病史 |
-| 财务数据 | `Poseidon2("finance_data_v1")` | 收入、支出、投资 |
-| 社交数据 | `Poseidon2("social_data_v1")` | 通讯录、聊天记录 |
-| 基因数据 | `Poseidon2("genomic_data_v1")` | DNA、遗传信息 |
+| 类别 | category_id | 输入 | 说明 |
+|------|------------|------|------|
+| 健康数据 | 1 | `Poseidon2(1u8)` | 血压、心率、病史 |
+| 基因数据 | 2 | `Poseidon2(2u8)` | DNA、遗传信息 |
+| 财务数据 | 3 | `Poseidon2(3u8)` | 收入、支出、投资 |
+| 其他数据 | 4 | `Poseidon2(4u8)` | 其他授权类别 |
 
 **为什么用 Poseidon2 而非 SHA256？**
 - Poseidon2 是 Aleo Leo 原生哈希函数，可在链上直接计算和验证
@@ -99,9 +100,9 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 | 用户操作 | 合约状态变化 |
 |---------|-------------|
-| 授权健康 | `authorizations[Poseidon2(addr, health_hash)] = block.height` |
-| 再授权基因 | `authorizations[Poseidon2(addr, genomic_hash)] = block.height` |
-| 撤销基因 | `authorizations[Poseidon2(addr, genomic_hash)] = 0` |
+| 授权健康(category_id=1) | `authorizations[Poseidon2(addr, hash(1))] = block.height` |
+| 再授权基因(category_id=2) | `authorizations[Poseidon2(addr, hash(2))] = block.height` |
+| 撤销基因(category_id=2) | `authorizations[Poseidon2(addr, hash(2))] = 0` |
 
 每个 (用户, 类别) 组合是独立授权位，互不干扰。外部观察者只能看到 field 值的增删，无法区分是血压还是基因。
 
@@ -120,7 +121,7 @@ Privacy AI Helper 采用**链上 ZK + 链下承诺**双层架构：
 AI 可以无视授权、自由回答任何问题。
 
 Layer2 的 Privacy Tag 把授权上下文与 AI 输出绑定：
-`Privacy_Tag = SHA256(category_hash | answer | timestamp)`
+`Privacy_Tag = SHA256(category_id | answer | timestamp)`
 
 后端无法事后伪造 —— 任何人可用相同输入重算验证。
 
@@ -128,18 +129,18 @@ Layer2 的 Privacy Tag 把授权上下文与 AI 输出绑定：
 
 ```
 ① 用户连接钱包 → wallet.connect()
-② 选择数据类别 → 前端计算 category_hash
-③ POST /api/ask {prompt, category_hash, address}
+② 选择数据类别 → 前端设置 category_id = 1 (健康)
+③ POST /api/ask {prompt, category_id: 1, address}
          │
-④ 后端查询链上: is_authorized(address, category_hash) → true/false
+④ 后端查询链上: is_authorized(address, category_id=1, max_age) → true/false
          │
-⑤ 后端构建约束 prompt: "用户已授权: 健康数据。仅在此范围内回答。"
+⑤ 后端构建约束 prompt: "你只能基于健康数据范围回答。"
          │
 ⑥ Ollama 本地推理 → AI 回答（数据不出电脑）
          │
-⑦ 生成 Privacy Tag = SHA256(category_hash + answer + timestamp)
+⑦ 生成 Privacy Tag = SHA256(category_id + answer + timestamp)
          │
-⑧ 返回前端: {answer, privacy_tag, chain_verified, contract_tx}
+⑧ 返回前端: {answer, privacy_tag, category_id, contract_tx}
          │
 ⑨ 前端展示: ✅ 回答 + ✅ Privacy Tag + ✅ 链上验证链接
 ```
