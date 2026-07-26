@@ -91,7 +91,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 **为什么用 Poseidon2 而非 SHA256？**
 - Poseidon2 是 Aleo Leo 原生哈希函数，可在链上直接计算和验证
-- 任何人可以独立复算验证：`Poseidon2("health_data_v1")` 必然得到相同值
+- 任何人可以独立复算验证：`Poseidon2::hash_to_field(1u8)` 必然得到相同的 field 值
 - 零知识友好，适合 SNARK 电路中的约束生成
 
 ### 多类别独立授权

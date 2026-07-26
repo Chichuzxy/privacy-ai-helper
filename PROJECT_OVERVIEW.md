@@ -10,7 +10,7 @@
 
 用户连接 Aleo 钱包，选择要授权的数据类别（如"健康数据"），向本地 AI 提问（如"血压135/85正常吗？"），AI 在本地推理后返回答案。每次回答附带一条 Privacy Tag 哈希，链上可验证。
 
-**核心闭环：连接钱包 → 选择数据类别 → AI 问答 → ZK 证明 → 链上可查。**
+**核心闭环：连接钱包 → 选择数据类别 → AI 问答 → Privacy Tag + 链上 ZK → 链上可查。**
 
 ---
 
@@ -19,11 +19,11 @@
 | 层级 | 技术 | 说明 |
 |------|------|------|
 | 前端 | React 19 + Vite + CSS | 深色 ChatGPT 风 UI，含钱包连接、数据类别选择、中英切换 |
-| 后端 | Express (Node.js) | Ollama 对接、ZK 证明生成、隐私 prompt 构建 |
+| 后端 | Express (Node.js) | Ollama 对接、Privacy Tag 生成、隐私 prompt 构建 |
 | AI 模型 | Ollama + Qwen2.5 1.5B | 本地推理，数据不出用户电脑 |
 | 区块链 | Aleo Testnet + Leo 4.x | 隐私授权合约，链上哈希存证 |
 | 钱包 | Leo Wallet (原生 API) | `window.aleo.connect()`，3 次重试 + 自动降级 |
-| 合约 | Leo (privacy_ai_helper.aleo) | 5 个函数：grant/check/revoke/store/is_authorized |
+| 合约 | Leo (privacy_ai_helper.aleo) | 5 个函数：grant/check/revoke/is_authorized/hash_category |
 
 ---
 
@@ -35,7 +35,7 @@
 | 2 | **链上哈希不可反推** | 合约只存 `field` 哈希，Poseidon2 是单向函数——观察者只能看到数字，无法反推类别名 |
 | 3 | **两层证明体系** | Layer1 链上 ZK（Aleo `is_authorized`）+ Layer2 链下承诺（Privacy Tag = SHA256 绑定），确保 AI 回答在授权范围内 |
 | 4 | **本地 AI 推理** | Ollama 在用户电脑本地跑，原始数据从不离开设备 |
-| 5 | **时间维度过期控制** | 合约内置 `auth_timestamps` + `max_age`，授权不是永久的，到期自动失效 |
+| 5 | **时间维度过期控制** | 合约 mapping 值即时间戳，`is_authorized` 含 `max_age` 参数，授权不是永久的，到期自动失效 |
 | 6 | **一键启动** | 双击 `.bat` 自动拉起 Ollama + 后端 + 前端 + 浏览器 |
 
 ---
@@ -87,7 +87,7 @@
 | 后端 `node --check` | SYNTAX OK |
 | 合约 语法（5 函数、括号匹配） | PASS |
 | Ollama 中文推理 | "你好！我是阿里云..." |
-| API `/api/ask` 真实调用 | answer + zk_proof 正常返回 |
+| API `/api/ask` 真实调用 | answer + privacy_tag 正常返回 |
 | 文档完整性（4 个 md） | PASS |
 
 ---
