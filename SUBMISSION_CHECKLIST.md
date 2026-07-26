@@ -62,7 +62,8 @@
 | 16 | README.md | 函数名/数量/合约大小与源码一致 | [x] |
 | 17 | PITCH_DECK.md | Slide 4 三层防线 + Slide 7 真实场景 | [x] |
 | 18 | DEMO_SCRIPT.md | 3 轮对话 + Q&A 弹药库 | [x] |
-| 19 | PROJECT_OVERVIEW.md | 章节编号正确，数据与部署记录一致 | [x] |
+| 19 | 测试指南 | `TEST_GUIDE.md`（13 项功能测试 + 排错） | [x] |
+| 20 | PROJECT_OVERVIEW.md | 章节编号正确，数据与部署记录一致 | [x] |
 
 ---
 

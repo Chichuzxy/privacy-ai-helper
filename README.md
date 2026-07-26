@@ -169,7 +169,9 @@ AI-Xiaozhushou/
 ├── README.md              # 项目方案书
 ├── DEMO_SCRIPT.md         # Demo 演示脚本
 ├── PITCH_DECK.md          # 路演 PPT 逐字稿
-└── PROJECT_OVERVIEW.md    # 项目说明文档
+├── PROJECT_OVERVIEW.md    # 项目说明文档
+├── TEST_GUIDE.md          # 测试操作流程（13 项）
+└── SUBMISSION_CHECKLIST.md # 提交清单
 ```
 
 ---
