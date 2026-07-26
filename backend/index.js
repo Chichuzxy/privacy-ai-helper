@@ -1,14 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
-require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:1.5b";
+const OLLAMA_URL = "http://localhost:11434";
+const OLLAMA_MODEL = "qwen2.5:1.5b";
 
 const CATEGORIES = {
   1: "健康数据 (血压/心率/病史)",
@@ -16,6 +15,23 @@ const CATEGORIES = {
   3: "财务数据 (收入/支出/投资)",
   4: "其他数据",
 };
+
+// Simulated authorization state (Demo: replaces on-chain is_authorized check)
+// In production, this is replaced by Aleo contract call
+const authorizedCategories = new Map(); // address => Set<category_id>
+
+function isAuthorized(address, categoryId) {
+  if (!address) return categoryId === 1; // default: health is pre-authorized for demo
+  const userCats = authorizedCategories.get(address);
+  return userCats ? userCats.has(categoryId) : (categoryId === 1);
+}
+
+function grantAuth(address, categoryId) {
+  if (!authorizedCategories.has(address)) {
+    authorizedCategories.set(address, new Set([1])); // health always pre-granted
+  }
+  authorizedCategories.get(address).add(categoryId);
+}
 
 // Privacy Tag: SHA256 commitment (not native Groth16 ZKP)
 // Binds authorization context to AI output for offline verification
@@ -29,7 +45,7 @@ function buildPrompt(userPrompt, categoryId, language) {
   const prefix = language === "zh"
     ? "你是一个隐私保护的AI助手。用户已授权你访问以下数据类别：" + categoryDesc + "。请仅基于此类别的数据范围回答问题。"
     : "You are a privacy-preserving AI assistant. User authorized data category: " + categoryDesc + ". Answer only within this scope.";
-  let full = prefix + "\\n\\n用户：" + userPrompt;
+  let full = prefix + "\n\n用户：" + userPrompt;
   if (language === "zh") full = "请用中文回答。" + full;
   return full;
 }
@@ -58,13 +74,13 @@ const DEMO_ANSWERS = {
   zh: {
     1: "根据您提供的数据，血压 135/85 属于正常高值范围。收缩压 135 略高于理想值 120，舒张压 85 在正常范围内。建议保持健康饮食、规律运动，定期监测血压变化。",
     2: "基因数据分析需要专业的生物信息学工具。请在授权的基因数据类别下，提供具体的基因位点或检测报告内容，我可以帮您解读相关健康风险。",
-    3: "财务数据分析需要在授权的财务数据类别下进行。请提供具体的收支记录或投资组合信息，我可以帮您分析财务状况和优化建议。",
+    3: "您尚未授权财务数据类别的访问。请先在 Aleo 合约中授权该类别。AI 回答被拦截 —— 这是 ZK 授权边界在起作用。",
     4: "请在左侧下拉菜单中选择您要授权的数据类别，然后提出具体问题，AI 将在您授权的数据范围内为您回答。",
   },
   en: {
     1: "Your blood pressure reading of 135/85 falls within the elevated range. Consider lifestyle changes and consult your doctor for a personalized plan.",
     2: "Genetic data analysis requires specialized tools. Please provide specific genetic markers or test results within your authorized gene data scope.",
-    3: "Financial analysis requires authorized data access. Please share your income/expense records or portfolio details for personalized advice.",
+    3: "You have not authorized financial data access. AI response blocked — ZK authorization boundary enforced.",
     4: "Please select a data category from the dropdown menu and ask a specific question. The AI will respond within your authorized data scope.",
   },
 };
@@ -77,12 +93,36 @@ app.get("/api/categories", (req, res) => {
   res.json({ categories: CATEGORIES });
 });
 
+app.post("/api/authorize", (req, res) => {
+  const { address, category_id } = req.body;
+  if (!address || !category_id) return res.status(400).json({ error: "address and category_id required" });
+  grantAuth(address, category_id);
+  res.json({ status: "ok", authorized: Array.from(authorizedCategories.get(address) || []) });
+});
+
 app.post("/api/ask", async (req, res) => {
   const { prompt, language, category_id, address } = req.body;
   if (!prompt) return res.status(400).json({ error: "prompt required" });
 
   const catId = category_id || 1;
   const isDemo = req.query.demo === "true";
+
+  // Authorization check (mocks on-chain is_authorized)
+  const authorized = isAuthorized(address, catId);
+  if (!authorized) {
+    const rejectionMsg = language === "zh"
+      ? "您尚未授权" + (CATEGORIES[catId] || "该") + "的访问。请先在 Aleo 合约中授权该类别。"
+      : "You have not authorized " + (CATEGORIES[catId] || "this category") + " access. Please authorize it in the Aleo contract first.";
+    const privacy_tag = generatePrivacyTag(catId, rejectionMsg, Date.now());
+    return res.json({
+      answer: rejectionMsg,
+      privacy_tag,
+      category_id: catId,
+      verified: false,
+      source: "authorization_blocked",
+      contract_tx: "at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053",
+    });
+  }
 
   let answer;
   let source;
@@ -126,8 +166,9 @@ app.get("/api/demo", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log("Backend on http://localhost:" + PORT);
   console.log("Ollama: " + OLLAMA_URL + " | Model: " + OLLAMA_MODEL);
+  console.log("Authorization guard: active (health pre-authorized, finance/gene blocked)");
 });
