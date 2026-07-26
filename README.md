@@ -34,10 +34,10 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 |------|-----|
 | 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
 | 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
-| 部署费用 | 5.19 credits |
+| 费用 | 5.19 credits |
 | 程序大小 | 1.99 KB |
 | 网络 | Aleo Testnet |
-| 函数数 | 5 个 |
+| 函数数 | 4 个 |
 
 ---
 
@@ -56,7 +56,6 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 |  - grant_access / revoke_access     |
 |  - check_access (查询授权状态)      |
 |  - is_authorized (ZK 验证 + 过期)   |
-|  - hash_category (Poseidon2 哈希)   |
 +------------------------------------+
 ```
 
@@ -70,7 +69,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | `check_access` | `(category_id: u8) -> field` | 查询某类别授权状态 | 返回 0field=未授权 或 block.height=已授权，外部无法反推类别 |
 | `revoke_access` | `(category_id: u8) -> field` | 撤销单个类别授权 | 指定类别键值清零，不影响其他已授权类别 |
 | `is_authorized` | `(owner, category_id, max_age) -> bool` | 验证授权 + 过期检查 | 含 `block.height` 时效判断，授权不是永久的 |
-| `hash_category` | `(category_id: u8) -> field` | 类别ID转Poseidon2哈希 | 纯函数，链上可复算，输出为 ZK 友好 field 值 |
+| `Poseidon2::hash_to_field` | 内联调用 | 类别ID转Poseidon2哈希 | 每个函数内联执行，非独立函数。输出为 ZK 友好 field 值 |
 
 合约已通过 `leo build` 编译并部署到 Aleo Testnet。
 
@@ -164,7 +163,7 @@ AI-Xiaozhushou/
 ├── backend/               # Express 后端
 │   └── index.js           # Ollama 对接 + ZK 生成
 ├── privacy_ai_helper/     # Leo 智能合约
-│   └── src/main.leo       # 隐私授权合约（5 函数，已通过语法检查）
+│   └── src/main.leo       # 隐私授权合约（4 函数，已部署到 Testnet）
 ├── 一键启动.bat            # Windows 全栈一键启动
 ├── README.md              # 项目方案书
 ├── DEMO_SCRIPT.md         # Demo 演示脚本

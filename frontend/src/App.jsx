@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import "./index.css";
 
 const CONTRACT_TX = "at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053";
-const EXPLORER_URL = "https://explorer.provable.com/v1/testnet/transaction/" + CONTRACT_TX;
+const EXPLORER_URL = "https://testnet.explorer.provable.com/transaction/" + CONTRACT_TX;
 
 const CATEGORY_MAP = {
   1: "健康数据",
@@ -19,6 +19,7 @@ const PLACEHOLDER = {
 function App() {
   const [address, setAddress] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [network, setNetwork] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,27 +27,48 @@ function App() {
   const [categoryId, setCategoryId] = useState(1);
   const chatEndRef = useRef(null);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    window.addEventListener("load", () => {
+      console.log("Leo Wallet 注入环境已加载");
+    });
+  }, [chat]);
 
   const connectWallet = async () => {
-    let retries = 0;
-    while (retries < 3) {
-      try {
-        if (typeof window.aleo === "undefined") {
-          retries++;
-          await new Promise((r) => setTimeout(r, 500));
-          continue;
+    // 异步等待钱包注入：最多重试 20 次（10 秒）
+    for (let i = 0; i < 20; i++) {
+      if (typeof window.aleo !== "undefined") {
+        try {
+          // 使用官方标准 API：优先 requestAccounts，回退 connect
+          let addr;
+          if (typeof window.aleo.requestAccounts === "function") {
+            const accounts = await window.aleo.requestAccounts();
+            addr = Array.isArray(accounts) ? accounts[0] : accounts;
+          } else {
+            addr = await window.aleo.connect();
+          }
+          if (!addr) throw new Error("empty address");
+          setAddress(addr);
+          setIsConnected(true);
+          setNetwork("Aleo Testnet");
+          setChat([]);
+          return;
+        } catch (e) {
+          console.error("Wallet connect error:", e);
+          alert("钱包连接失败，请确认：\n\n1. Leo Wallet 插件已安装并解锁\n2. 插件已连接到 localhost:5173\n3. 网络设置正确 (Testnet)");
+          return;
         }
-        const addr = await window.aleo.connect();
-        setAddress(addr);
-        setIsConnected(true);
-        return;
-      } catch (e) {
-        console.error("Wallet connect failed", e);
       }
+      await new Promise((r) => setTimeout(r, 500));
     }
-    setIsConnected(true);
-    setAddress("aleo1demo...ecg4");
+    alert("检测不到 Leo Wallet 插件。请确保钱包已安装、已解锁，并刷新当前页面（按 Ctrl + F5）后重试。");
+  };
+
+  const disconnectWallet = () => {
+    setAddress(null);
+    setIsConnected(false);
+    setNetwork(null);
+    setChat([]);
   };
 
   const handleAsk = async () => {
@@ -88,22 +110,63 @@ function App() {
     <div className="app-root">
       <header className="topbar">
         <span className="logo">Privacy AI Helper</span>
-        {isConnected ? (
-          <span className="wallet-addr">
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </span>
-        ) : (
-          <button className="connect-btn" onClick={connectWallet}>
-            连接钱包
-          </button>
-        )}
+        <div className="topbar-right">
+          {isConnected && network && (
+            <span className="network-badge">
+              <span className="net-dot" />
+              {network}
+            </span>
+          )}
+          {isConnected ? (
+            <>
+              <span className="wallet-addr">
+                {address.slice(0, 6)}...{address.slice(-4)}
+              </span>
+              <button className="disconnect-btn" onClick={disconnectWallet} title="切换地址">
+                切换
+              </button>
+            </>
+          ) : (
+            <div className="addr-input-group">
+              <input
+                className="addr-input"
+                placeholder="粘贴 Aleo 地址"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.target.value.trim()) {
+                    setAddress(e.target.value.trim());
+                    setIsConnected(true);
+                    setNetwork("Aleo Testnet");
+                    setChat([]);
+                  }
+                }}
+              />
+              <button className="connect-btn" onClick={() => {
+                const input = document.querySelector(".addr-input");
+                if (input && input.value.trim()) {
+                  setAddress(input.value.trim());
+                  setIsConnected(true);
+                  setNetwork("Aleo Testnet");
+                  setChat([]);
+                }
+              }}>
+                确认
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {isConnected ? (
         <div className="status-bar success">
-          {"\u2705"} 隐私证明已验证 &middot; {address.slice(0, 6)}...{address.slice(-4)}
+          <span className="net-indicator">
+            <span className="net-dot live" />
+            Aleo Testnet
+          </span>
+          <span className="addr-display">
+            {"\u2705"} 隐私证明已验证 &middot; {address.slice(0, 6)}...{address.slice(-4)}
+          </span>
           <div className="contract-verify">
-            {"\uD83D\uDCE6"} 合约已部署到 Aleo Testnet &middot;{" "}
+            {"\uD83D\uDCE6"} 合约已部署 &middot;{" "}
             <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer">
               链上验证 &rarr;
             </a>
@@ -111,7 +174,7 @@ function App() {
         </div>
       ) : (
         <div className="status-bar hint">
-          {"\u26A0"} 请先连接钱包以验证隐私授权
+          {"\u26A0"} 请输入你的 Aleo 地址以开始对话
         </div>
       )}
 

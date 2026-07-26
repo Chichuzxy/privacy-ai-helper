@@ -16,6 +16,13 @@ const CATEGORIES = {
   4: "其他数据",
 };
 
+const CATEGORIES_EN = {
+  1: "Health Data (blood pressure/heart rate/medical history)",
+  2: "Genetic Data (DNA/genetic information)",
+  3: "Financial Data (income/expenses/investments)",
+  4: "Other Data",
+};
+
 // Simulated authorization state (Demo: replaces on-chain is_authorized check)
 // In production, this is replaced by Aleo contract call
 const authorizedCategories = new Map(); // address => Set<category_id>
@@ -41,25 +48,31 @@ function generatePrivacyTag(categoryId, answer, timestamp) {
 }
 
 function buildPrompt(userPrompt, categoryId, language) {
-  const categoryDesc = CATEGORIES[categoryId] || "";
-  const prefix = language === "zh"
-    ? "你是一个隐私保护的AI助手。用户已授权你访问以下数据类别：" + categoryDesc + "。请仅基于此类别的数据范围回答问题。"
-    : "You are a privacy-preserving AI assistant. User authorized data category: " + categoryDesc + ". Answer only within this scope.";
-  let full = prefix + "\n\n用户：" + userPrompt;
-  if (language === "zh") full = "请用中文回答。" + full;
-  return full;
+  const isZh = language === "zh";
+  const categoryDesc = isZh ? (CATEGORIES[categoryId] || "") : (CATEGORIES_EN[categoryId] || "");
+  if (isZh) {
+    const system = "请用中文回答。你是一个隐私保护的AI助手。用户已授权你访问以下数据类别：" + categoryDesc + "。请仅基于此类别的数据范围回答问题。";
+    return system + "\n\n用户：" + userPrompt;
+  }
+  // English: put language instruction last for stronger effect
+  const system = "You are a privacy-preserving AI assistant. Authorized data category: " + categoryDesc + ".";
+  return system + "\n\nUser: " + userPrompt + "\n\nIMPORTANT: You MUST respond in English only. Do NOT use Chinese.";
 }
 
-async function askOllama(prompt) {
+async function askOllama(prompt, language) {
   try {
+    const body = {
+      model: OLLAMA_MODEL,
+      prompt: prompt,
+      stream: false,
+    };
+    if (language === "en") {
+      body.system = "You are a helpful assistant. You MUST respond in English only. Never use Chinese characters.";
+    }
     const res = await fetch(OLLAMA_URL + "/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        prompt: prompt,
-        stream: false,
-      }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(120000),
     });
     const data = await res.json();
@@ -127,14 +140,18 @@ app.post("/api/ask", async (req, res) => {
   let answer;
   let source;
 
-  if (isDemo) {
-    const lang = language || "zh";
-    const demoSet = DEMO_ANSWERS[lang] || DEMO_ANSWERS.zh;
+  // English mode: use preset responses (Qwen2.5 is Chinese-optimized)
+  if (language === "en") {
+    const demoSet = DEMO_ANSWERS.en;
+    answer = demoSet[catId] || demoSet[1];
+    source = "demo";
+  } else if (isDemo) {
+    const demoSet = DEMO_ANSWERS.zh;
     answer = demoSet[catId] || demoSet[1];
     source = "demo";
   } else {
     const finalPrompt = buildPrompt(prompt, catId, language);
-    answer = await askOllama(finalPrompt);
+    answer = await askOllama(finalPrompt, language);
     source = "ollama";
   }
 

@@ -19,25 +19,60 @@ body {
   background: #0c0c0c; flex-shrink: 0;
 }
 .logo { font-size: 18px; font-weight: 700; color: #f0f0f0; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
 
 .connect-btn {
   padding: 8px 20px; border-radius: 20px; border: none;
   background: #2563eb; color: #fff; font-weight: 600;
   font-size: 13px; cursor: pointer;
 }
+
+.addr-input-group {
+  display: flex; align-items: center; gap: 6px;
+}
+.addr-input {
+  padding: 7px 14px; border-radius: 12px; border: 1px solid #333;
+  background: #111; color: #e0e0e0; font-size: 12px; font-family: monospace;
+  width: 280px; outline: none;
+}
+.addr-input:focus { border-color: #2563eb; }
+.addr-input::placeholder { color: #555; }
+
+.network-badge {
+  font-size: 11px; color: #4ade80; background: #0a1f10;
+  padding: 4px 10px; border-radius: 12px; display: flex; align-items: center; gap: 5px;
+}
+.net-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+.net-dot.live { animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
 .wallet-addr {
   font-size: 13px; font-family: monospace; color: #4ade80;
   background: #0a1f10; padding: 6px 14px; border-radius: 20px;
 }
+.disconnect-btn {
+  padding: 6px 12px; border-radius: 12px; border: 1px solid #333;
+  background: transparent; color: #888; font-size: 11px; cursor: pointer;
+}
+.disconnect-btn:hover { color: #ef4444; border-color: #ef4444; }
 
 /* ===== Status Bar ===== */
 .status-bar {
-  text-align: center; padding: 10px; font-size: 13px;
+  text-align: center; padding: 10px 16px; font-size: 13px;
   flex-shrink: 0; border-bottom: 1px solid #1a1a1a;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  flex-wrap: wrap;
 }
 .status-bar.success { background: #0a1f10; color: #4ade80; }
+.status-bar.success .net-indicator {
+  font-size: 12px; display: flex; align-items: center; gap: 5px;
+  color: #4ade80;
+}
+.status-bar.success .addr-display {
+  font-size: 13px; font-family: monospace;
+}
 .status-bar.success .contract-verify {
-  margin-top: 6px; font-size: 12px; color: #6ee7b7;
+  font-size: 12px; color: #6ee7b7;
 }
 .status-bar.success .contract-verify a {
   color: #38bdf8; text-decoration: none; font-weight: 600;

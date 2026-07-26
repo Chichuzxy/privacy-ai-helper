@@ -22,8 +22,8 @@
 | 后端 | Express (Node.js) | Ollama 对接、Privacy Tag 生成、隐私 prompt 构建 |
 | AI 模型 | Ollama + Qwen2.5 1.5B | 本地推理，数据不出用户电脑 |
 | 区块链 | Aleo Testnet + Leo 4.x | 隐私授权合约，链上哈希存证 |
-| 钱包 | Leo Wallet (原生 API) | `window.aleo.connect()`，3 次重试 + 自动降级 |
-| 合约 | Leo (privacy_ai_helper_v2.aleo) | 5 个函数：grant/check/revoke/is_authorized/hash_category |
+| 钱包 | Leo Wallet + 手动地址输入 | 浏览器插件复制地址 → 前端文本框粘贴 |
+| 合约 | Leo (privacy_ai_helper_v2.aleo) | 4 个函数：grant/revoke/check_access/is_authorized |
 
 ---
 
@@ -48,7 +48,7 @@
 | `check_access` | `(category_id: u8) -> field` | 查询授权状态 | 返回 0field 或 block.height，外部无法反推类别 |
 | `revoke_access` | `(category_id: u8)` | 撤销单个类别 | 指定类别清零，不影响其他授权 |
 | `is_authorized` | `(owner, category_id, max_age) -> bool` | ZK 验证 + 过期 | 含 block.height 时效判断 |
-| `hash_category` | `(category_id: u8) -> field` | Poseidon2 哈希 | 纯函数，链上可复算 |
+| Poseidon2 | 内联调用 | Poseidon2 哈希 | 每个函数内联执行 `Poseidon2::hash_to_field`，非独立函数。链上可复算 |
 
 ---
 
@@ -59,7 +59,7 @@
 | 前端 | 钱包连接 + 聊天 UI + 数据类别选择 + 中英切换 | ✅ Done |
 | 后端 | Ollama 对接 + Privacy Tag 生成 + 隐私 prompt 构建 | ✅ Done |
 | AI | Qwen2.5 1.5B 中文推理正常 | ✅ Done |
-| 合约 | 5 函数，已编译，**已部署到 Aleo Testnet** | ✅ Done |
+| 合约 | 4 函数，已编译，**已部署到 Aleo Testnet** | ✅ Done |
 | 文档 | README + DEMO_SCRIPT + PITCH_DECK + PROJECT_OVERVIEW | ✅ Done |
 | 启动 | 一键启动.bat（Ollama + 后端 + 前端 + 浏览器） | ✅ Done |
 | GitHub | https://github.com/Chichuzxy/privacy-ai-helper | ✅ Done |
@@ -85,7 +85,7 @@
 |--------|------|
 | 前端 `npm run build` | 15 modules, 0 errors |
 | 后端 `node --check` | SYNTAX OK |
-| 合约 语法（5 函数、括号匹配） | PASS |
+| 合约 语法（4 函数、括号匹配） | PASS |
 | Ollama 中文推理 | "你好！我是阿里云..." |
 | API `/api/ask` 真实调用 | answer + privacy_tag 正常返回 |
 | 文档完整性（4 个 md） | PASS |
