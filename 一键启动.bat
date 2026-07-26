@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Privacy AI Helper - 一键启动
+title Privacy AI Helper -
 
 echo.
 echo ========================================
@@ -21,10 +21,20 @@ if not exist "%OLLAMA_PATH%" (
 )
 start "Ollama Service" /MIN "%OLLAMA_PATH%" serve
 echo        Waiting for Ollama to be ready...
+set counter=0
 :wait_ollama
 timeout /t 2 /nobreak >nul
 curl -s http://localhost:11434/api/tags >nul 2>&1
-if errorlevel 1 goto wait_ollama
+if not errorlevel 1 goto :ollama_ready
+set /a counter+=1
+if %counter% GTR 30 (
+    echo [ERROR] Ollama  (60)
+    echo         Ollama  Plan B
+    goto :backend
+)
+goto wait_ollama
+
+:ollama_ready
 echo        Ollama is ready.
 
 :: Check model
@@ -42,10 +52,19 @@ start "Backend - Privacy AI" cmd /k "cd /d %BASE_DIR%backend && echo Installing 
 
 :: Wait for backend
 echo        Waiting for backend...
+set counter=0
 :wait_backend
 timeout /t 2 /nobreak >nul
 curl -s http://localhost:3001/api/health >nul 2>&1
-if errorlevel 1 goto wait_backend
+if not errorlevel 1 goto :backend_ready
+set /a counter+=1
+if %counter% GTR 30 (
+    echo [ERROR]  (60)
+    pause && exit /b 1
+)
+goto wait_backend
+
+:backend_ready
 echo        Backend is ready.
 
 :: === 3. Frontend ===
@@ -55,10 +74,19 @@ start "Frontend - Privacy AI" cmd /k "cd /d %BASE_DIR%frontend && echo Installin
 
 :: Wait for frontend
 echo        Waiting for frontend...
+set counter=0
 :wait_frontend
 timeout /t 2 /nobreak >nul
 curl -s http://localhost:5173 >nul 2>&1
-if errorlevel 1 goto wait_frontend
+if not errorlevel 1 goto :frontend_ready
+set /a counter+=1
+if %counter% GTR 30 (
+    echo [ERROR]  (60)
+    pause && exit /b 1
+)
+goto wait_frontend
+
+:frontend_ready
 
 :: === Done ===
 echo.

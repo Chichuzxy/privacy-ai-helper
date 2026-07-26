@@ -4,6 +4,14 @@ import "./index.css";
 const CONTRACT_TX = "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq";
 const EXPLORER_URL = "https://explorer.aleo.org/transaction/" + CONTRACT_TX;
 
+// 数据类别映射: category_id → 显示名
+const CATEGORY_MAP = {
+  1: "健康数据",
+  2: "基因数据",
+  3: "财务数据",
+  4: "其他数据",
+};
+
 function App() {
   const [address, setAddress] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -11,7 +19,7 @@ function App() {
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("zh");
-  const [category, setCategory] = useState("health");
+  const [categoryId, setCategoryId] = useState(1);
 
   const connectWallet = async () => {
     let retries = 0;
@@ -27,7 +35,7 @@ function App() {
         setIsConnected(true);
         return;
       } catch (e) {
-        console.error("钱包连接失败", e);
+        console.error("", e);
       }
     }
     // 3次重试后自动降级为演示模式
@@ -42,20 +50,25 @@ function App() {
       const res = await fetch("http://localhost:3001/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, language, category, address }),
+        body: JSON.stringify({
+          prompt,
+          language,
+          category_id: categoryId,
+          address,
+        }),
       });
       const data = await res.json();
       setChat((prev) => [
         ...prev,
         { role: "user", text: prompt },
-        { role: "ai", text: data.answer, zkProof: data.zk_proof },
+        { role: "ai", text: data.answer, privacyTag: data.privacy_tag },
       ]);
       setPrompt("");
     } catch (err) {
       setChat((prev) => [
         ...prev,
         { role: "user", text: prompt },
-        { role: "error", text: "后端连接失败: " + err.message },
+        { role: "error", text: "" + err.message },
       ]);
     }
     setLoading(false);
@@ -63,7 +76,7 @@ function App() {
 
   return (
     <div className="app-root">
-      {/* 顶部栏 */}
+      {/*  */}
       <header className="topbar">
         <span className="logo">Privacy AI Helper</span>
         {isConnected ? (
@@ -72,49 +85,49 @@ function App() {
           </span>
         ) : (
           <button className="connect-btn" onClick={connectWallet}>
-            连接钱包
+            {}
           </button>
         )}
       </header>
 
-      {/* 状态栏 */}
+      {/*  */}
       {isConnected ? (
         <div className="status-bar success">
-          {"\u2705"} 隐私证明已验证 &middot; {address.slice(0, 6)}...{address.slice(-4)}
+          {"\u2705"}  &middot; {address.slice(0, 6)}...{address.slice(-4)}
           <div className="contract-verify">
-            {"\U0001F4E6"} 合约已部署到 Aleo Testnet &middot;{" "}
+            {"\uD83D\uDCE6"} Aleo Testnet &middot;{" "}
             <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer">
-              链上验证 &rarr;
+               &rarr;
             </a>
           </div>
         </div>
       ) : (
         <div className="status-bar hint">
-          {"\u26A0"} 请先连接钱包以验证隐私授权
+          {"\u26A0"} 
         </div>
       )}
 
-      {/* 聊天区 */}
+      {/*  */}
       <main className="chat-area">
         {chat.length === 0 && (
           <div className="empty-chat">
             {isConnected
-              ? "你好，请输入你的问题，AI将在隐私保护下为你回答。"
-              : "请先连接钱包以开始对话"}
+              ? "AI"
+              : ""}
           </div>
         )}
         {chat.map((msg, i) => (
           <div key={i} className={"msg-row " + (msg.role === "user" ? "user" : msg.role === "error" ? "error" : "ai")}>
             <div className="msg-bubble">
               <div className="msg-label">
-                {msg.role === "user" ? "你" : msg.role === "error" ? "错误" : "AI"}
+                {msg.role === "user" ? "" : msg.role === "error" ? "" : "AI"}
               </div>
               <div className="msg-body">{msg.text}</div>
-              {msg.zkProof && (
+              {msg.privacyTag && (
                 <div className="zk-tag">
-                  ZK Proof: <code>{msg.zkProof.slice(0, 22)}...</code>
+                  Privacy Tag: <code>{msg.privacyTag.slice(0, 22)}...</code>
                   <a href={EXPLORER_URL} target="_blank" rel="noopener noreferrer" style={{marginLeft:8,color:"#38bdf8",fontSize:11}}>
-                    合约验证 &rarr;
+                     &rarr;
                   </a>
                 </div>
               )}
@@ -123,31 +136,30 @@ function App() {
         ))}
       </main>
 
-      {/* 输入框 */}
+      {/*  */}
       <footer className="input-bar">
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="lang-select">
-          <option value="health">健康数据</option>
-          <option value="finance">财务数据</option>
-          <option value="social">社交数据</option>
-          <option value="genomic">基因数据</option>
+        <select value={categoryId} onChange={(e) => setCategoryId(Number(e.target.value))} className="lang-select">
+          {Object.entries(CATEGORY_MAP).map(([id, name]) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
         </select>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
           className="lang-select"
         >
-          <option value="zh">中文</option>
+          <option value="zh"></option>
           <option value="en">English</option>
         </select>
         <input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-          placeholder={isConnected ? "请输入您的问题..." : "请先连接钱包"}
+          placeholder={isConnected ? "..." : ""}
           disabled={loading || !isConnected}
         />
         <button onClick={handleAsk} disabled={loading || !isConnected}>
-          {loading ? "请稍候" : "发送"}
+          {loading ? "" : ""}
         </button>
       </footer>
     </div>

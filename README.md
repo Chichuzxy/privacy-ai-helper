@@ -190,9 +190,23 @@ AI-Xiaozhushou/
 
 1. **数据类别授权制** — 不是"全有或全无"的权限，用户可以精细控制授权范围
 2. **链上哈希存证** — 不存原始数据，但可验证授权行为真实发生过
-3. **AI 回答 + ZK 证明双输出** — 每次回答附带可验证的隐私证明
+3. **AI 回答 + Privacy Tag 双输出** — 每次回答附带 SHA256 可用性承诺，链上 Poseidon2 ZK 哈希不可反推
 4. **本地 AI 推理** — 数据不出用户电脑，彻底隐私保护
 5. **一键启动** — 双击 `.bat` 文件即可跑通全栈，降低评委复现成本
+
+---
+
+## 为什么选 Aleo？赛道对比
+
+| 项目 | 定位 | ZK 哈希 | 合约语言 | 适合做授权门禁？ |
+|------|------|---------|---------|----------------|
+| **Aleo** | 可编程隐私 L1 | Poseidon2 (原生) | Leo | **:heavy_check_mark: `mapping(field=>field)` 即 ZK storage** |
+| Aztec | 隐私交易 L2 | Pedersen | Noir | 偏交易，不支持 field→field ZK mapping |
+| Tornado | 隐私混币器 | MiMC | Solidity | 单一功能，不可编程 |
+| zkSync | ZK Rollup L2 | SHA256/Keccak | Solidity | 无原生 ZK 存储概念 |
+| Mina | 轻量 ZK L1 | Poseidon | SnarkyJS | ZK 强但存储限制严格 |
+
+**选择 Aleo 的核心原因：** Poseidon2 是 Aleo 合约的原语，`Mapping::set/get` 默认在 SNARK 约束内。我们的多类别独立授权模型依赖 `Poseidon2(user_addr, category_hash)` 作为 ZK 友好的键值结构 —— 这在其他链上需要手写电路，在 Aleo 上是 3 行代码。
 
 ---
 

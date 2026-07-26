@@ -1,57 +1,70 @@
-// Privacy AI Helper — 隐私授权合约 (修复版)
-// 修复: 1.bool→field 2.store_data权限校验 3.时间维度 4.verify_access返回值
+// Privacy AI Helper — 隐私授权合约 v2
+// 改进: 1.多类别独立授权 2.显式Poseidon2调用 3.单类别撤销 4.预设类别常量
 
 program privacy_ai_helper.aleo {
-    // 漏洞修复1: bool → field，只存授权数据类别的哈希，杜绝元数据泄露
-    mapping authorizations: address => field;
-    // 漏洞修复3: 添加时间维度，记录授权时间戳
-    mapping auth_timestamps: address => u32;
 
-    @noupgrade constructor() {}
+    // 预设数据类别
+    const CATEGORY_HEALTH: u8 = 1u8;   // 健康数据 (血压/心率/病史)
+    const CATEGORY_GENE: u8 = 2u8;     // 基因数据 (DNA/遗传信息)
+    const CATEGORY_FINANCE: u8 = 3u8;  // 财务数据 (收入/支出/投资)
+    const CATEGORY_OTHER: u8 = 4u8;    // 其他数据
 
-    // 授权：调用者主动授予某个数据类别哈希的访问权限
-    fn grant_access(data_hash: field) -> Final {
-        let caller: address = self.caller;
-        return final {
-            let timestamp: u32 = block.height;
-            Mapping::set(authorizations, caller, data_hash);
-            Mapping::set(auth_timestamps, caller, timestamp);
+    // 授权存储: key = Poseidon2(user_addr, category_hash) => value = 授权时间戳
+    mapping authorizations: field => field;
+
+    // 类别名 → field 哈希 (Poseidon2, ZK友好)
+    function hash_category(category_id: u8) -> field {
+        return Poseidon2::hash_to_field(category_id);
+    }
+
+    // 授权某数据类别
+    // 传入类别ID(1-4), 合约内部用Poseidon2生成哈希键
+    transition grant_access(category_id: u8) -> field {
+        // 只接受预设的4个类别
+        match category_id {
+            CATEGORY_HEALTH => {},
+            CATEGORY_GENE => {},
+            CATEGORY_FINANCE => {},
+            CATEGORY_OTHER => {},
+            _ => assert(false),
         };
-    }
-
-    // 漏洞修复1: 返回 field 而非 bool，外部无法推断授权状态
-    fn check_access(owner: address) -> (field, Final) {
-        return (0field, final {
-            let hash: field = Mapping::get_or_use(authorizations, owner, 0field);
-        });
-    }
-
-    // 撤销授权：将授权哈希清零
-    fn revoke_access() -> Final {
         let caller: address = self.caller;
-        return final {
-            Mapping::set(authorizations, caller, 0field);
-            Mapping::set(auth_timestamps, caller, 0u32);
-        };
+        let category_hash: field = hash_category(category_id);
+        let key: field = Poseidon2::hash_to_field(caller, category_hash);
+        return finalize(key, caller);
     }
 
-    // 漏洞修复2: store_data 增加权限校验，防止他人覆盖
-    fn store_data(data_category: field) -> Final {
+    finalize grant_access(key: field, caller: address) {
+        Mapping::set(authorizations, key, block.height);
+    }
+
+    // 撤销单个数据类别授权
+    transition revoke_access(category_id: u8) -> field {
         let caller: address = self.caller;
-        return final {
-            let existing: field = Mapping::get_or_use(authorizations, caller, 0field);
-            // 只允许首次写入，或写同一个值（防止覆盖他人数据）
-            assert(existing == 0field || existing == data_category);
-            Mapping::set(authorizations, caller, data_category);
-        };
+        let category_hash: field = hash_category(category_id);
+        let key: field = Poseidon2::hash_to_field(caller, category_hash);
+        return finalize(key);
     }
 
-    // 验证授权是否有效（含时间过期检查）
-    fn is_authorized(owner: address, max_age: u32) -> (bool, Final) {
-        return (false, final {
-            let hash: field = Mapping::get_or_use(authorizations, owner, 0field);
-            let ts: u32 = Mapping::get_or_use(auth_timestamps, owner, 0u32);
-            let valid: bool = hash != 0field && (block.height - ts) <= max_age;
-        });
+    finalize revoke_access(key: field) {
+        Mapping::set(authorizations, key, 0field);
+    }
+
+    // 查询某类别授权状态
+    // 返回 0field = 未授权/已撤销, 非0 = 授权时的区块高度
+    function check_access(category_id: u8) -> field {
+        let caller: address = self.caller;
+        let category_hash: field = hash_category(category_id);
+        let key: field = Poseidon2::hash_to_field(caller, category_hash);
+        return Mapping::get_or_use(authorizations, key, 0field);
+    }
+
+    // 验证授权是否有效 (含过期检查)
+    function is_authorized(owner: address, category_id: u8, max_age: u32) -> bool {
+        let category_hash: field = hash_category(category_id);
+        let key: field = Poseidon2::hash_to_field(owner, category_hash);
+        let stored: field = Mapping::get_or_use(authorizations, key, 0field);
+        let ts: u32 = Mapping::get_or_use(authorizations, key, 0u32);
+        return stored != 0field && (block.height - ts) <= max_age;
     }
 }

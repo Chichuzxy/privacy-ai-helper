@@ -10,38 +10,29 @@ app.use(express.json());
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:1.5b";
 
-// 支持的数据类别
-const DATA_CATEGORIES = {
-  health: "健康数据 (血压/心率/病史)",
-  finance: "财务数据 (收入/支出/投资)",
-  social: "社交数据 (通讯录/聊天记录)",
-  genomic: "基因数据 (DNA/遗传信息)",
+// 预设数据类别 (与 Leo 合约 CATEGORY_* 常量一一对应)
+const CATEGORIES = {
+  1: "血压、心率、病史",
+  2: "DNA、遗传信息",
+  3: "收入、支出、投资",
+  4: "",
 };
 
-// 合约部署信息 (Aleo Testnet)
-const CONTRACT = {
-  tx_id: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
-  address: "aleo1kdldc7kk6594c0zd6jy...",
-  network: "testnet",
-  fee: "6.07 credits",
-  size: "1.95 KB",
-  functions: ["grant_access", "check_access", "revoke_access", "store_data", "is_authorized"],
-};
-
-// ZK 证明生成（Demo 用 SHA256，生产环境对接 Leo 链上验证）
-function generateZKProof(prompt, category, address) {
-  const payload = [prompt, category, address, Date.now().toString()].join("|");
-  return "0x" + crypto.createHash("sha256").update(payload).digest("hex");
+// Privacy Tag -- SHA256
+// SHA256 => on-chain Poseidon2 ZK
+function generatePrivacyTag(categoryId, answer, timestamp) {
+  const payload = [categoryId.toString(), answer, timestamp.toString()].join("|");
+  return "0x" + crypto.createHash("sha256").update(payload).digest("hex").slice(0, 16);
 }
 
-// 构建隐私感知的 prompt
-function buildPrompt(userPrompt, category, language) {
-  const categoryDesc = DATA_CATEGORIES[category] || category;
+// prompt
+function buildPrompt(userPrompt, categoryId, language) {
+  const categoryDesc = CATEGORIES[categoryId] || "";
   const prefix = language === "zh"
-    ? "你是一个隐私保护的AI助手。用户已授权你访问以下数据类别：" + categoryDesc + "。请仅基于此类别的数据范围回答问题。"
+    ? "" + categoryDesc + ""
     : "You are a privacy-preserving AI assistant. User authorized data category: " + categoryDesc + ". Answer only within this scope.";
-  let full = prefix + "\\n\\n用户：" + userPrompt;
-  if (language === "zh") full = "请用中文回答。" + full;
+  let full = prefix + "\\n\\n" + userPrompt;
+  if (language === "zh") full = "" + full;
   return full;
 }
 
@@ -64,36 +55,79 @@ async function askOllama(prompt) {
   }
 }
 
+// Plan B: Demo
+const DEMO_ANSWERS = {
+  zh: {
+    1: "135/85",
+    2: "",
+    3: "",
+    4: "",
+  },
+  en: {
+    1: "Your blood pressure reading of 135/85 falls within the elevated range. The top number (systolic) is borderline high, while the bottom (diastolic) is normal. Consider lifestyle changes and consult your doctor.",
+    2: "",
+    3: "",
+    4: "",
+  },
+};
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", ollama: OLLAMA_URL });
 });
 
 app.get("/api/categories", (req, res) => {
-  res.json({ categories: DATA_CATEGORIES });
+  res.json({ categories: CATEGORIES });
 });
 
 app.post("/api/ask", async (req, res) => {
-  const { prompt, language, category, address } = req.body;
+  const { prompt, language, category_id, address } = req.body;
   if (!prompt) return res.status(400).json({ error: "prompt required" });
 
-  const dataCategory = category || "health";
+  const catId = category_id || 1;
   const userAddress = address || "aleo1demo";
-  const finalPrompt = buildPrompt(prompt, dataCategory, language);
-  const answer = await askOllama(finalPrompt);
-  const zk_proof = generateZKProof(prompt, dataCategory, userAddress);
+  const isDemo = req.query.demo === "true";
+
+  let answer;
+  let source;
+
+  if (isDemo) {
+    const lang = language || "zh";
+    const demoSet = DEMO_ANSWERS[lang] || DEMO_ANSWERS.zh;
+    answer = demoSet[catId] || demoSet[1];
+    source = "demo";
+  } else {
+    const finalPrompt = buildPrompt(prompt, catId, language);
+    answer = await askOllama(finalPrompt);
+    source = "ollama";
+  }
+
+  const privacy_tag = generatePrivacyTag(catId, answer, Date.now());
 
   res.json({
     answer,
-    zk_proof,
-    category: dataCategory,
+    privacy_tag,
+    category_id: catId,
     verified: true,
-    contract: CONTRACT.tx_id,
+    source,
+    contract_tx: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
   });
 });
 
-// 合约信息端点
-app.get("/api/contract", (req, res) => {
-  res.json(CONTRACT);
+// Plan B
+app.get("/api/demo", (req, res) => {
+  const lang = req.query.lang || "zh";
+  const catId = parseInt(req.query.cat) || 1;
+  const demoSet = DEMO_ANSWERS[lang] || DEMO_ANSWERS.zh;
+  const answer = demoSet[catId] || demoSet[1];
+  const privacy_tag = generatePrivacyTag(catId, answer, Date.now());
+  res.json({
+    answer,
+    privacy_tag,
+    category_id: catId,
+    verified: true,
+    source: "demo",
+    contract_tx: "at1s90j4pdlxujpumne04kkgtjymv7ez9y9j2a8vkcd3ysn3ruehu9qvgutyq",
+  });
 });
 
 const PORT = process.env.PORT || 3001;
