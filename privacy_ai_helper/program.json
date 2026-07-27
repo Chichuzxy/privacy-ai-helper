@@ -1,7 +1,7 @@
 {
-  "program": "privacy_ai_helper_v2.aleo",
-  "version": "0.2.0",
-  "description": "",
+  "program": "privacy_ai_helper_v3.aleo",
+  "version": "0.3.0",
+  "description": "Fixed query functions using assert pattern (Leo v2 Final limitation)",
   "license": "MIT",
   "leo": "4.3.4",
   "dependencies": null,

@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Privacy AI Helper -
+title Privacy AI Helper - 全栈启动
 
 echo.
 echo ========================================
@@ -28,8 +28,8 @@ curl -s http://localhost:11434/api/tags >nul 2>&1
 if not errorlevel 1 goto :ollama_ready
 set /a counter+=1
 if %counter% GTR 30 (
-    echo [ERROR] Ollama  (60)
-    echo         Ollama  Plan B
+    echo [ERROR] Ollama 启动超时 (60s)
+    echo         Ollama 未就绪，将跳过 AI 功能
     goto :backend
 )
 goto wait_ollama
@@ -59,7 +59,7 @@ curl -s http://localhost:3001/api/health >nul 2>&1
 if not errorlevel 1 goto :backend_ready
 set /a counter+=1
 if %counter% GTR 30 (
-    echo [ERROR]  (60)
+    echo [ERROR] 后端启动超时 (60s)
     pause && exit /b 1
 )
 goto wait_backend
@@ -81,7 +81,7 @@ curl -s http://localhost:5173 >nul 2>&1
 if not errorlevel 1 goto :frontend_ready
 set /a counter+=1
 if %counter% GTR 30 (
-    echo [ERROR]  (60)
+    echo [ERROR] 前端启动超时 (60s)
     pause && exit /b 1
 )
 goto wait_frontend

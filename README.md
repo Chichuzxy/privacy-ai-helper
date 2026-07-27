@@ -2,7 +2,7 @@
 
 > Aleo Hackathon — AI x Privacy Track
 >
-> 隐私保护的 AI 健康顾问：用零知识证明验证 AI 回答，不泄露你的数据。
+> 隐私保护的 AI 健康顾问：用可验证的隐私标签保护 AI 回答，不泄露你的数据。
 
 ---
 
@@ -12,7 +12,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 **Privacy AI Helper** 让用户：
 - 自主选择授权哪些数据类别给 AI（血压 / 心率 / 病历 / 基因）
-- 每次 AI 回答附带零知识证明，链上可验证
+- 每次 AI 回答附带可验证的隐私标签，链上可查询
 - 不需要在链上存储任何原始数据——只存哈希
 
 ---
@@ -38,6 +38,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | 程序大小 | 1.99 KB |
 | 网络 | Aleo Testnet |
 | 函数数 | 4 个 |
+| 合约版本 | v2 已部署, v3 源码在 `privacy_ai_helper/src/main.leo`（修复了查询函数的 assert 模式） |
 
 ---
 
@@ -65,11 +66,11 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 | 函数 | 签名 | 功能 | 隐私保护方式 |
 |------|------|------|-------------|
-| `grant_access` | `(category_id: u8) -> field` | 用户授权某数据类别 | 输入数字ID，合约内 Poseidon2 生成哈希键，链上只存 field |
-| `check_access` | `(category_id: u8) -> field` | 查询某类别授权状态 | 返回 0field=未授权 或 block.height=已授权，外部无法反推类别 |
-| `revoke_access` | `(category_id: u8) -> field` | 撤销单个类别授权 | 指定类别键值清零，不影响其他已授权类别 |
-| `is_authorized` | `(owner, category_id, max_age) -> bool` | 验证授权 + 过期检查 | 含 `block.height` 时效判断，授权不是永久的 |
-| `Poseidon2::hash_to_field` | 内联调用 | 类别ID转Poseidon2哈希 | 每个函数内联执行，非独立函数。输出为 ZK 友好 field 值 |
+| `grant_access` | `(category_id: u8) -> Final` | 用户授权某数据类别 | 合约内 Poseidon2 生成哈希键，链上只存 field |
+| `check_access` | `(category_id: u8) -> Final` | 查询某类别授权状态 | assert 模式：调用成功=已授权，revert=未授权。外部无法反推类别 |
+| `revoke_access` | `(category_id: u8) -> Final` | 撤销单个类别授权 | 指定类别键值清零，不影响其他已授权类别 |
+| `is_authorized` | `(owner, category_id, max_age) -> Final` | 验证授权 + 过期检查 | assert 模式：成功=已授权且未过期，revert=未授权/已过期。含 block.height 时效判断 |
+| `Poseidon2::hash_to_field` | 内联调用 | 类别ID转Poseidon2哈希 | 每个函数内联执行，非独立函数 |
 
 合约已通过 `leo build` 编译并部署到 Aleo Testnet。
 

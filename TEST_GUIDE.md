@@ -176,7 +176,7 @@ npm run dev
 | AI 回复 `[AI Fallback]` | Ollama 未启动 → 运行 `ollama serve` |
 | 钱包连接报错 `window.aleo undefined` | Leo Wallet 插件未安装或未解锁 |
 | 钱包连接无弹窗 | 正常——之前已授权过会跳过弹窗直接连接 |
-| 合约验证链接打不开 | 检查是否可访问 `explorer.provable.com`，Testnet 可能需要 VPN |
+| 合约验证链接打不开 | 检查是否可访问 `testnet.explorer.provable.com`，Testnet 可能需要 VPN |
 | 语言切换后占位符不变 | 必须**先连接钱包**后占位符才会显示 |
 | 财务类别未拦截 | 刷新页面重新连接钱包（授权状态是会话级的） |
 | 中文回答变英文 | 检查语言下拉框是否选了"中文" |

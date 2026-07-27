@@ -29,7 +29,7 @@
 
 | # | 项目 | 路径/内容 | 状态 |
 |---|------|----------|------|
-| 7 | 合约源码 | `privacy_ai_helper/src/main.leo`（4 函数 + Poseidon2 内联调用） | [x] |
+| 7 | 合约源码 | `privacy_ai_helper/src/main.leo`（v3: 4 函数 + assert 查询模式 + Poseidon2 内联调用） | [x] |
 | 8 | 合约部署 | Aleo Testnet，tx `at1tlrj2xsah...`，5.19 credits | [x] |
 | 9 | 浏览器验证 | Provable Explorer 链接可查 | [x] |
 

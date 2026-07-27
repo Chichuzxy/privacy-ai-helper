@@ -23,7 +23,7 @@
 | AI 模型 | Ollama + Qwen2.5 1.5B | 本地推理，数据不出用户电脑 |
 | 区块链 | Aleo Testnet + Leo 4.x | 隐私授权合约，链上哈希存证 |
 | 钱包 | Leo Wallet + 手动地址输入 | 浏览器插件复制地址 → 前端文本框粘贴 |
-| 合约 | Leo (privacy_ai_helper_v2.aleo) | 4 个函数：grant/revoke/check_access/is_authorized |
+| 合约 | Leo (privacy_ai_helper_v3.aleo) | 4 个函数：grant/revoke/check_access/is_authorized，assert 查询模式 |
 
 ---
 
@@ -40,15 +40,14 @@
 
 ---
 
-## 四、合约函数（5 个）
+## 四、合约函数（4 个，v3 assert 模式）
 
 | 函数 | 签名 | 功能 | 隐私设计 |
 |------|------|------|---------|
-| `grant_access` | `(category_id: u8)` | 授权某数据类别 | 合约内 Poseidon2 生成哈希键，链上只存 field |
-| `check_access` | `(category_id: u8) -> field` | 查询授权状态 | 返回 0field 或 block.height，外部无法反推类别 |
-| `revoke_access` | `(category_id: u8)` | 撤销单个类别 | 指定类别清零，不影响其他授权 |
-| `is_authorized` | `(owner, category_id, max_age) -> bool` | ZK 验证 + 过期 | 含 block.height 时效判断 |
-| Poseidon2 | 内联调用 | Poseidon2 哈希 | 每个函数内联执行 `Poseidon2::hash_to_field`，非独立函数。链上可复算 |
+| `grant_access` | `(category_id: u8) -> Final` | 授权某数据类别 | 合约内 Poseidon2 生成哈希键，链上只存 field |
+| `check_access` | `(category_id: u8) -> Final` | 查询授权状态 | assert 模式：成功=已授权，revert=未授权 |
+| `revoke_access` | `(category_id: u8) -> Final` | 撤销单个类别 | 指定类别清零，不影响其他授权 |
+| `is_authorized` | `(owner, category_id, max_age) -> Final` | ZK 验证 + 过期 | assert 模式：成功=已授权且未过期。Leo v2 Final 限制，Mapping 返回值无法直接传出 |
 
 ---
 
