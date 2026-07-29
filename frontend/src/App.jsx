@@ -11,10 +11,22 @@ const CATEGORY_MAP = {
   4: "其他数据",
 };
 
+const CAT_ICONS = { 1: "\u2764", 2: "\uD83E\uDDEC", 3: "\uD83D\uDCB0", 4: "\uD83D\uDCCB" };
+
 const PLACEHOLDER = {
   zh: "请输入您的问题...",
   en: "Type your question...",
 };
+
+function fmtTime(ts) {
+  if (!ts) return "--";
+  const remaining = ts - Date.now();
+  if (remaining <= 0) return "\u5DF2\u8FC7\u671F";
+  const h = Math.floor(remaining / 3600000);
+  const m = Math.floor((remaining % 3600000) / 60000);
+  if (h > 0) return h + "h " + m + "m";
+  return m + "m";
+}
 
 function App() {
   const [address, setAddress] = useState(null);
@@ -25,6 +37,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("zh");
   const [categoryId, setCategoryId] = useState(1);
+  const [authState, setAuthState] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -34,12 +47,55 @@ function App() {
     });
   }, [chat]);
 
+  // Fetch authorization status when address changes
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchAuthStatus();
+    } else {
+      setAuthState(null);
+    }
+  }, [isConnected, address]);
+
+  const fetchAuthStatus = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/api/authorizations?address=" + encodeURIComponent(address));
+      const data = await res.json();
+      setAuthState(data.authorizations);
+    } catch (e) {
+      console.error("Failed to fetch auth status:", e);
+    }
+  };
+
+  const handleGrant = async (catId) => {
+    try {
+      await fetch("http://localhost:3001/api/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, category_id: catId }),
+      });
+      fetchAuthStatus();
+    } catch (e) {
+      console.error("Grant failed:", e);
+    }
+  };
+
+  const handleRevoke = async (catId) => {
+    try {
+      await fetch("http://localhost:3001/api/authorize", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, category_id: catId }),
+      });
+      fetchAuthStatus();
+    } catch (e) {
+      console.error("Revoke failed:", e);
+    }
+  };
+
   const connectWallet = async () => {
-    // 异步等待钱包注入：最多重试 20 次（10 秒）
     for (let i = 0; i < 20; i++) {
       if (typeof window.aleo !== "undefined") {
         try {
-          // 使用官方标准 API：优先 requestAccounts，回退 connect
           let addr;
           if (typeof window.aleo.requestAccounts === "function") {
             const accounts = await window.aleo.requestAccounts();
@@ -69,6 +125,7 @@ function App() {
     setIsConnected(false);
     setNetwork(null);
     setChat([]);
+    setAuthState(null);
   };
 
   const handleAsk = async () => {
@@ -175,6 +232,51 @@ function App() {
       ) : (
         <div className="status-bar hint">
           {"\u26A0"} 请输入你的 Aleo 地址以开始对话
+        </div>
+      )}
+
+      {/* Authorization Management Panel */}
+      {isConnected && authState && (
+        <div className="auth-panel">
+          <div className="auth-title">{"\uD83D\uDD10"} 授权管理</div>
+          <div className="auth-grid">
+            {[1, 2, 3, 4].map((catId) => {
+              const info = authState[catId];
+              const authorized = info && info.authorized;
+              return (
+                <div key={catId} className={"auth-card " + (authorized ? "granted" : "denied")}>
+                  <div className="auth-card-header">
+                    <span className="auth-icon">{CAT_ICONS[catId]}</span>
+                    <span className="auth-cat-name">{CATEGORY_MAP[catId]}</span>
+                    <span className={"auth-badge " + (authorized ? "badge-ok" : "badge-no")}>
+                      {authorized ? "\u2705 \u5DF2\u6388\u6743" : "\u274C \u672A\u6388\u6743"}
+                    </span>
+                  </div>
+                  {authorized ? (
+                    <div className="auth-card-body">
+                      <div className="auth-meta">
+                        {"\u23F3"} {fmtTime(info.expiresAt)}
+                      </div>
+                      {catId !== 1 && (
+                        <button className="auth-btn revoke" onClick={() => handleRevoke(catId)}>
+                          撤销授权
+                        </button>
+                      )}
+                      {catId === 1 && (
+                        <span className="auth-default-tag">默认授权</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="auth-card-body">
+                      <button className="auth-btn grant" onClick={() => handleGrant(catId)}>
+                        授权 24h
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

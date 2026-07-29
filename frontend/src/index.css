@@ -164,3 +164,47 @@ body {
 /* ===== Scrollbar ===== */
 .chat-area::-webkit-scrollbar { width: 6px; }
 .chat-area::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+/* ===== Authorization Panel ===== */
+.auth-panel {
+  margin: 0 20px; padding: 14px 16px;
+  border: 1px solid #1f1f1f; border-radius: 12px;
+  background: #0d0d0d; flex-shrink: 0;
+}
+.auth-title {
+  font-size: 13px; font-weight: 600; color: #888;
+  margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.auth-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.auth-card {
+  border-radius: 10px; padding: 10px 12px;
+  border: 1px solid #1f1f1f; background: #111;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.auth-card.granted { border-color: #1a3a1a; background: #0a120a; }
+.auth-card.denied { border-color: #2a1a1a; background: #120a0a; }
+
+.auth-card-header {
+  display: flex; align-items: center; gap: 6px;
+}
+.auth-icon { font-size: 16px; }
+.auth-cat-name { font-size: 12px; font-weight: 600; color: #ccc; }
+.auth-badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 600; margin-left: auto; }
+.badge-ok { background: #0a2a0a; color: #4ade80; }
+.badge-no { background: #2a0a0a; color: #ef4444; }
+
+.auth-card-body {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+}
+.auth-meta { font-size: 11px; color: #666; }
+.auth-default-tag { font-size: 10px; color: #555; font-style: italic; }
+
+.auth-btn {
+  padding: 4px 12px; border-radius: 8px; border: none;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.auth-btn.grant { background: #1a3a1a; color: #4ade80; }
+.auth-btn.revoke { background: #2a1212; color: #ef4444; }
+.auth-btn:hover { filter: brightness(1.3); }

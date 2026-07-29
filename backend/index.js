@@ -25,19 +25,57 @@ const CATEGORIES_EN = {
 
 // Simulated authorization state (Demo: replaces on-chain is_authorized check)
 // In production, this is replaced by Aleo contract call
-const authorizedCategories = new Map(); // address => Set<category_id>
+// address => { category_id: { grantedAt, expiresAt } }
+const authorizedCategories = new Map();
 
-function isAuthorized(address, categoryId) {
-  if (!address) return categoryId === 1; // default: health is pre-authorized for demo
+function isAuthorized(address, categoryId, maxAge = 86400000) {
+  // maxAge default: 24 hours (matches contract max_age concept)
+  if (!address) return categoryId === 1;
   const userCats = authorizedCategories.get(address);
-  return userCats ? userCats.has(categoryId) : (categoryId === 1);
+  if (!userCats) return categoryId === 1;
+  const entry = userCats.get(categoryId);
+  if (!entry) return false;
+  return Date.now() < entry.expiresAt;
 }
 
-function grantAuth(address, categoryId) {
+function grantAuth(address, categoryId, durationMs = 86400000) {
   if (!authorizedCategories.has(address)) {
-    authorizedCategories.set(address, new Set([1])); // health always pre-granted
+    const m = new Map();
+    m.set(1, { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 });
+    authorizedCategories.set(address, m);
   }
-  authorizedCategories.get(address).add(categoryId);
+  const userCats = authorizedCategories.get(address);
+  userCats.set(categoryId, {
+    grantedAt: Date.now(),
+    expiresAt: Date.now() + durationMs,
+  });
+}
+
+function revokeAuth(address, categoryId) {
+  const userCats = authorizedCategories.get(address);
+  if (userCats && categoryId !== 1) { // health (cat=1) cannot be revoked — always pre-authorized
+    userCats.delete(categoryId);
+  }
+}
+
+function getAuthorizations(address) {
+  const userCats = authorizedCategories.get(address);
+  const result = {};
+  for (let catId = 1; catId <= 4; catId++) {
+    if (catId === 1 || (userCats && userCats.has(catId))) {
+      const entry = catId === 1 && !userCats
+        ? { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 }
+        : (userCats ? userCats.get(catId) : null) || { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 };
+      result[catId] = {
+        authorized: Date.now() < entry.expiresAt,
+        grantedAt: entry.grantedAt,
+        expiresAt: entry.expiresAt,
+      };
+    } else {
+      result[catId] = { authorized: false, grantedAt: null, expiresAt: null };
+    }
+  }
+  return result;
 }
 
 // Privacy Tag: SHA256 commitment (not native Groth16 ZKP)
@@ -107,10 +145,29 @@ app.get("/api/categories", (req, res) => {
 });
 
 app.post("/api/authorize", (req, res) => {
+  const { address, category_id, duration_ms } = req.body;
+  if (!address || !category_id) return res.status(400).json({ error: "address and category_id required" });
+  grantAuth(address, category_id, duration_ms || 86400000);
+  const status = getAuthorizations(address);
+  res.json({ status: "ok", authorizations: status });
+});
+
+// Revoke authorization for a category
+app.delete("/api/authorize", (req, res) => {
   const { address, category_id } = req.body;
   if (!address || !category_id) return res.status(400).json({ error: "address and category_id required" });
-  grantAuth(address, category_id);
-  res.json({ status: "ok", authorized: Array.from(authorizedCategories.get(address) || []) });
+  if (category_id === 1) return res.status(400).json({ error: "health category cannot be revoked — always pre-authorized" });
+  revokeAuth(address, category_id);
+  const status = getAuthorizations(address);
+  res.json({ status: "ok", authorizations: status });
+});
+
+// List all authorizations for an address
+app.get("/api/authorizations", (req, res) => {
+  const address = req.query.address;
+  if (!address) return res.status(400).json({ error: "address query param required" });
+  const status = getAuthorizations(address);
+  res.json({ address, authorizations: status });
 });
 
 app.post("/api/ask", async (req, res) => {
