@@ -257,6 +257,9 @@ function App() {
                       <div className="auth-meta">
                         {"\u23F3"} {fmtTime(info.expiresAt)}
                       </div>
+                      <div className="auth-hash" title={"Poseidon2\u6A21\u62DF\u54C8\u5E0C: " + info.hash}>
+                        {"\uD83D\uDD10"} {info.hash ? info.hash.slice(0, 10) + "..." : ""}
+                      </div>
                       {catId !== 1 && (
                         <button className="auth-btn revoke" onClick={() => handleRevoke(catId)}>
                           撤销授权

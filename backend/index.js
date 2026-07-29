@@ -53,9 +53,16 @@ function grantAuth(address, categoryId, durationMs = 86400000) {
 
 function revokeAuth(address, categoryId) {
   const userCats = authorizedCategories.get(address);
-  if (userCats && categoryId !== 1) { // health (cat=1) cannot be revoked — always pre-authorized
+  if (userCats && categoryId !== 1) {
     userCats.delete(categoryId);
   }
+}
+
+// Simulated Poseidon2 hash (demo: SHA256 stand-in for Aleo native Poseidon2)
+// In production, this is Poseidon2::hash_to_field(addr_field + cat_hash) on-chain
+function simulatePoseidon2(address, categoryId) {
+  const payload = address + ":" + categoryId.toString();
+  return "0x" + crypto.createHash("sha256").update(payload).digest("hex").slice(0, 16);
 }
 
 function getAuthorizations(address) {
@@ -66,13 +73,15 @@ function getAuthorizations(address) {
       const entry = catId === 1 && !userCats
         ? { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 }
         : (userCats ? userCats.get(catId) : null) || { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 };
+      const authorized = Date.now() < entry.expiresAt;
       result[catId] = {
-        authorized: Date.now() < entry.expiresAt,
+        authorized,
         grantedAt: entry.grantedAt,
         expiresAt: entry.expiresAt,
+        hash: authorized ? simulatePoseidon2(address, catId) : null,
       };
     } else {
-      result[catId] = { authorized: false, grantedAt: null, expiresAt: null };
+      result[catId] = { authorized: false, grantedAt: null, expiresAt: null, hash: null };
     }
   }
   return result;
