@@ -29,10 +29,9 @@ const CATEGORIES_EN = {
 const authorizedCategories = new Map();
 
 function isAuthorized(address, categoryId, maxAge = 86400000) {
-  // maxAge default: 24 hours (matches contract max_age concept)
-  if (!address) return categoryId === 1;
+  if (!address) return false;
   const userCats = authorizedCategories.get(address);
-  if (!userCats) return categoryId === 1;
+  if (!userCats) return false;
   const entry = userCats.get(categoryId);
   if (!entry) return false;
   return Date.now() < entry.expiresAt;
@@ -40,9 +39,7 @@ function isAuthorized(address, categoryId, maxAge = 86400000) {
 
 function grantAuth(address, categoryId, durationMs = 86400000) {
   if (!authorizedCategories.has(address)) {
-    const m = new Map();
-    m.set(1, { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 });
-    authorizedCategories.set(address, m);
+    authorizedCategories.set(address, new Map());
   }
   const userCats = authorizedCategories.get(address);
   userCats.set(categoryId, {
@@ -53,7 +50,7 @@ function grantAuth(address, categoryId, durationMs = 86400000) {
 
 function revokeAuth(address, categoryId) {
   const userCats = authorizedCategories.get(address);
-  if (userCats && categoryId !== 1) {
+  if (userCats) {
     userCats.delete(categoryId);
   }
 }
@@ -69,17 +66,10 @@ function getAuthorizations(address) {
   const userCats = authorizedCategories.get(address);
   const result = {};
   for (let catId = 1; catId <= 4; catId++) {
-    if (catId === 1 || (userCats && userCats.has(catId))) {
-      const entry = catId === 1 && !userCats
-        ? { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 }
-        : (userCats ? userCats.get(catId) : null) || { grantedAt: Date.now(), expiresAt: Date.now() + 86400000 };
+    const entry = userCats ? userCats.get(catId) : null;
+    if (entry) {
       const authorized = Date.now() < entry.expiresAt;
-      result[catId] = {
-        authorized,
-        grantedAt: entry.grantedAt,
-        expiresAt: entry.expiresAt,
-        hash: authorized ? simulatePoseidon2(address, catId) : null,
-      };
+      result[catId] = { authorized, grantedAt: entry.grantedAt, expiresAt: entry.expiresAt, hash: authorized ? simulatePoseidon2(address, catId) : null };
     } else {
       result[catId] = { authorized: false, grantedAt: null, expiresAt: null, hash: null };
     }
@@ -165,7 +155,6 @@ app.post("/api/authorize", (req, res) => {
 app.delete("/api/authorize", (req, res) => {
   const { address, category_id } = req.body;
   if (!address || !category_id) return res.status(400).json({ error: "address and category_id required" });
-  if (category_id === 1) return res.status(400).json({ error: "health category cannot be revoked — always pre-authorized" });
   revokeAuth(address, category_id);
   const status = getAuthorizations(address);
   res.json({ status: "ok", authorizations: status });
@@ -253,5 +242,5 @@ const PORT = 3001;
 app.listen(PORT, () => {
   console.log("Backend on http://localhost:" + PORT);
   console.log("Ollama: " + OLLAMA_URL + " | Model: " + OLLAMA_MODEL);
-  console.log("Authorization guard: active (health pre-authorized, finance/gene blocked)");
+  console.log("Authorization guard: active (all categories require explicit grant)");
 });
