@@ -157,9 +157,9 @@ Layer2 的 Privacy Tag 把授权上下文与 AI 输出绑定：
 
 ```
 AI-Xiaozhushou/
-│   ├── frontend/              # React + Vite 前端（地址输入 + 授权管理面板 + 聊天）
+│   ├── frontend/              # React + Vite 前端（地址输入 + 可收起侧边栏授权 + 聊天）
 │   │   └── src/
-│   │       ├── App.jsx        # 主界面（授权管理/聊天/语言选择/哈希显示）
+│   │       ├── App.jsx        # 主界面（侧边栏授权管理/聊天/语言/哈希/ZK指示器）
 │       └── index.css      # 深色极简 UI
 ├── backend/               # Express 后端
 │   └── index.js           # Ollama 对接 + ZK 生成
