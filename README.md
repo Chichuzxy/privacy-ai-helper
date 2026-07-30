@@ -50,7 +50,7 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 | Aleo Wallet |       | Privacy Tag 生成|       | Qwen2.5 1.5B    |
 +------|------+       +------|-------+       +------------------+
        |                      |
-       | 钱包连接 + 授权签名   | 数据类别哈希上链
+       | 地址输入 + 授权签名   | 数据类别哈希上链
        v                      v
 +------------------------------------+
 |      Aleo Testnet (Leo 合约)        |
@@ -157,9 +157,9 @@ Layer2 的 Privacy Tag 把授权上下文与 AI 输出绑定：
 
 ```
 AI-Xiaozhushou/
-├── frontend/              # React + Vite 前端
-│   └── src/
-│       ├── App.jsx        # 主界面（钱包 + 聊天 + 语言选择）
+│   ├── frontend/              # React + Vite 前端（地址输入 + 授权管理面板 + 聊天）
+│   │   └── src/
+│   │       ├── App.jsx        # 主界面（授权管理/聊天/语言选择/哈希显示）
 │       └── index.css      # 深色极简 UI
 ├── backend/               # Express 后端
 │   └── index.js           # Ollama 对接 + ZK 生成
@@ -167,11 +167,13 @@ AI-Xiaozhushou/
 │   └── src/main.leo       # 隐私授权合约（4 函数，已部署到 Testnet）
 ├── 一键启动.bat            # Windows 全栈一键启动
 ├── README.md              # 项目方案书
-├── DEMO_SCRIPT.md         # Demo 演示脚本
-├── PITCH_DECK.md          # 路演 PPT 逐字稿
 ├── PROJECT_OVERVIEW.md    # 项目说明文档
+├── PITCH_DECK.md          # 路演 PPT 逐字稿
+├── DEMO_SCRIPT.md         # Demo 演示脚本
 ├── TEST_GUIDE.md          # 测试操作流程（13 项）
-└── SUBMISSION_CHECKLIST.md # 提交清单
+├── SUBMISSION.md          # 提交表单内容（Why Privacy + PMF）
+├── SUBMISSION_CHECKLIST.md # 提交清单
+└── IDEA.md                # 内部笔记
 ```
 
 ---

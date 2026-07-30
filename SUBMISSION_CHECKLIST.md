@@ -64,6 +64,8 @@
 | 18 | DEMO_SCRIPT.md | 3 轮对话 + Q&A 弹药库 | [x] |
 | 19 | 测试指南 | `TEST_GUIDE.md`（13 项功能测试 + 排错） | [x] |
 | 20 | PROJECT_OVERVIEW.md | 章节编号正确，数据与部署记录一致 | [x] |
+| 21 | SUBMISSION.md | Why Privacy + PMF + 合约详情提交内容完整 | [x] |
+| 22 | 授权管理面板 | 4 类别独立授权/撤销/期限/哈希存证 | [x] |
 
 ---
 
@@ -72,8 +74,8 @@
 - [x] 合约 `main.leo` 含 `Poseidon2::hash_to_field` 显式调用
 - [x] 前端 `npm run build` 0 error
 - [x] 后端 `node --check backend/index.js` 0 error
-- [x] 后端授权守卫 16/16 测试通过
-- [x] 文档 5 份 md 全部无乱码、无旧 tx 残留
+- [x] 后端授权守卫 8/8 测试通过（curl 全端点验证）
+- [x] 文档 7 份 md 全部无乱码、无旧 tx 残留
 - [x] 录屏设置：1920x1080, 100% 缩放
 - [ ] 录制 3 分钟 Demo 视频
 - [ ] PITCH_DECK.md 转 PowerPoint
