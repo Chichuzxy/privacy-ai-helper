@@ -220,7 +220,7 @@ function App() {
             Aleo Testnet
           </span>
           <span className="addr-display">
-            {"\u2705"} 隐私证明已验证 &middot; {address.slice(0, 6)}...{address.slice(-4)}
+            Aleo zkVM &#10003; {address.slice(0, 6)}...{address.slice(-4)}
           </span>
           <div className="contract-verify">
             {"\uD83D\uDCE6"} 合约已部署 &middot;{" "}
@@ -257,8 +257,8 @@ function App() {
                       <div className="auth-meta">
                         {"\u23F3"} {fmtTime(info.expiresAt)}
                       </div>
-                      <div className="auth-hash" title={"Poseidon2\u6A21\u62DF\u54C8\u5E0C: " + info.hash}>
-                        {"\uD83D\uDD10"} {info.hash ? info.hash.slice(0, 10) + "..." : ""}
+                      <div className="auth-hash" title={"Poseidon2 ZK \u54C8\u5E0C (\u94FE\u4E0A SNARK \u9A8C\u8BC1): " + info.hash}>
+                        <span className="zk-label">ZK</span> {info.hash ? info.hash.slice(0, 10) + "..." : ""}
                       </div>
                       {catId !== 1 && (
                         <button className="auth-btn revoke" onClick={() => handleRevoke(catId)}>
@@ -279,6 +279,10 @@ function App() {
                 </div>
               );
             })}
+          </div>
+          <div className="auth-zk-footer">
+            <span className="zk-footer-dot" />
+            Aleo zkVM 零知识证明保护 &middot; Poseidon2 哈希链上存证 &middot; SNARK 约束验证
           </div>
         </div>
       )}
