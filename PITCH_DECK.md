@@ -92,8 +92,9 @@ Ollama + Qwen2.5 在用户电脑运行
 ## Slide 6: 合约部署 & 演示
 
 **Aleo Testnet 已部署！**
-- 交易: `at1tlrj2xsah...`
-- 费用: 5.19 credits | 大小: 1.99 KB
+- 交易 (v2): `at1tlrj2xsah...`
+- 费用: 5.19 cr (v2) / ~5.31 cr (v3 待部署)
+- 大小: 2.16 KB / 55,593 约束 (v3)
 
 **演示截图：**
 1. 深色极简 UI + 连接钱包按钮

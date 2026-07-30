@@ -32,13 +32,13 @@ AI 健康助手越来越普及，但每次使用都需要暴露敏感数据（�
 
 | 项目 | 值 |
 |------|-----|
-| 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
+| 交易 ID (v2) | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
 | 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
-| 费用 | 5.19 credits |
-| 程序大小 | 1.99 KB |
+| 费用 (v2) | 5.19 credits |
+| 程序大小 (v2) | 1.99 KB |
 | 网络 | Aleo Testnet |
 | 函数数 | 4 个 |
-| 合约版本 | v2 已部署, v3 源码在 `privacy_ai_helper/src/main.leo`（修复了查询函数的 assert 模式） |
+| 合约版本 | v3 已编译 (2.16 KB, 55,593 约束, ~5.31 cr)，待节点费率稳定后部署 |
 
 ---
 

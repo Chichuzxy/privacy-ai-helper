@@ -101,8 +101,8 @@ The gap: **no existing solution combines local AI inference with on-chain verifi
 
 | Item | Value |
 |------|-------|
-| Program | `privacy_ai_helper_v2.aleo` (Testnet deployed) |
-| Source (v3) | `privacy_ai_helper/src/main.leo` |
+| Program | `privacy_ai_helper_v3.aleo` (compiled, 2.16 KB, 55,593 constraints) |
+| Deployed (v2) | `privacy_ai_helper_v2.aleo` on Testnet (tx `at1tlrj2xsah...`) |
 | Functions | 4: grant_access, revoke_access, check_access, is_authorized |
 | Hash | Poseidon2 (Aleo native ZK-friendly hash) |
 | Authorization model | Per-user, per-category independent slots in `mapping(field => field)` |
@@ -137,4 +137,4 @@ This proves: authorization works, unauthorized access is blocked, each Privacy T
 | Privacy Tag is SHA256, not native Groth16 ZKP | Layer1 (Aleo Poseidon2) provides ZK guarantees; Layer2 (SHA256) provides output binding. Two-layer architecture makes this explicit |
 | Backend simulates on-chain `is_authorized` for demo | Production path is documented in code; `authorizedCategories` Map mirrors contract logic exactly |
 | Leo Wallet not injected on localhost | Manual address input as fallback; functionally equivalent, documented in README |
-| v2 deployed, v3 source fix pending redeployment | v3 fixes query function assert pattern; v2 already validates compile + deploy feasibility |
+| v2 deployed, v3 source compiled (2.16 KB / 55,593 约束) | v3 fixes query function assert pattern; v2 already validates compile + deploy feasibility |

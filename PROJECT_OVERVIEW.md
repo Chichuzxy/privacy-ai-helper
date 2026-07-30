@@ -67,10 +67,10 @@
 
 | 项目 | 值 |
 |------|-----|
-| 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` |
+| 交易 ID | `at1tlrj2xsah3yxsxjkdsehc48qrysp8f5zy4jy3lt3v4gmwfymuu8s8cr053` (v2) |
 | 合约地址 | `aleo1kdldc7kk6594c0zd6jy...` |
-| 部署费用 | 5.19 credits |
-| 程序大小 | 1.99 KB / 2000 KB |
+| 部署费用 | 5.19 credits (v2) / ~5.31 credits (v3) |
+| 程序大小 | 1.99 KB (v2) / 2.16 KB (v3, 55,593 约束) |
 | 变量数 | 89,079 / 2,097,152 |
 | 约束数 | 63,949 / 2,097,152 |
 | 网络 | Aleo Testnet |
