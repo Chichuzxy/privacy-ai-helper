@@ -27,6 +27,7 @@ function App() {
   const [categoryId, setCategoryId] = useState(1);
   const [authState, setAuthState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [grantedMsgs, setGrantedMsgs] = useState(new Set());
   const chatEndRef = useRef(null);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat]);
@@ -136,8 +137,24 @@ function App() {
                   <div className="msg-label">{msg.role === "user" ? "你" : msg.role === "error" ? "错误" : "AI"}</div>
                   <div className="msg-body">{msg.role === "loading" ? <em>{msg.text}</em> : msg.text}</div>
                   {msg.blocked && (
-                    <button className="quick-grant" onClick={() => { grant(msg.catId); setChat((p) => p.filter((_,j) => j !== i)); }}>
-                      🔓 授权并重试
+                    <button className="quick-grant" disabled={grantedMsgs.has(i)}
+                      onClick={async () => {
+                        await grant(msg.catId);
+                        setGrantedMsgs((s) => new Set([...s, i]));
+                        const userMsg = chat[i - 1];
+                        if (userMsg) {
+                          setCategoryId(msg.catId);
+                          setChat((p) => [...p, { role: "loading", text: "AI 正在思考中..." }]);
+                          try {
+                            const r = await fetch("http://localhost:3001/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: userMsg.text, language, category_id: msg.catId, address }) });
+                            const d = await r.json();
+                            setChat((p) => { const u = [...p]; u[u.length - 1] = { role: "ai", text: d.answer, privacyTag: d.privacy_tag, verified: d.verified }; return u; });
+                          } catch (e) {
+                            setChat((p) => { const u = [...p]; u[u.length - 1] = { role: "error", text: "后端连接失败: " + e.message }; return u; });
+                          }
+                        }
+                      }}>
+                      {grantedMsgs.has(i) ? "已授权" : "🔓 授权并重试"}
                     </button>
                   )}
                   {msg.privacyTag && (
