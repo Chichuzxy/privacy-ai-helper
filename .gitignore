@@ -25,6 +25,9 @@ ollama_cache/
 # Python
 __pycache__/
 
+# Hermes
+.hermes/
+
 # Large binaries
 *.exe
 *.dll
